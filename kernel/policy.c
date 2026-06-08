@@ -24,7 +24,11 @@ static int policy_exempt(int tool) {
 }
 
 void policy_init(void) {
+    static const char seed_policy[] = "deny 10\n";
+
     deny_count = 0;
+    if (!ramfs_path_exists(POLICY_ACTIVE))
+        ramfs_put(POLICY_ACTIVE, seed_policy, (int)sizeof(seed_policy) - 1);
     kprintf("[policy] ready path=%s deny_max=%d\n", POLICY_ACTIVE, POLICY_DENY_MAX);
 }
 

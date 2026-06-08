@@ -13,25 +13,25 @@ SECTIONS
     .text : {
         *(.multiboot)
         *(.text.init)
-        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v01_beta*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(.text .text.*)
+        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v0*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(.text .text.*)
     } :mbload
 
     _etext = .;
 
     .rodata : {
-        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v01_beta*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(.rodata .rodata.*)
+        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v0*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(.rodata .rodata.*)
     } :mbload
 
     _erodata = .;
 
     .data : {
-        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v01_beta*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(.data .data.*)
+        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v0*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(.data .data.*)
     } :mbload
 
     .bss : {
         __bss_start = .;
-        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v01_beta*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(.bss .bss.*)
-        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v01_beta*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(COMMON)
+        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v0*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(.bss .bss.*)
+        EXCLUDE_FILE(*demo_wrap*.o *demo_console*.o *demo_v0*.o *agent_svc_x86.o *display_svc_x86.o *input_svc_x86.o *console_svc_x86.o) *(COMMON)
     } :mbload
 
     . = ALIGN(16);
@@ -42,7 +42,7 @@ SECTIONS
     .user.text : {
         *demo_wrap*.o(.text .text.*)
         *demo_console*.o(.text .text.*)
-        *demo_v01_beta*.o(.text .text.*)
+        *demo_v0*.o(.text .text.*)
         *agent_svc_x86.o(.text .text.*)
         *display_svc_x86.o(.text .text.*)
         *input_svc_x86.o(.text .text.*)
@@ -51,7 +51,7 @@ SECTIONS
     .user.rodata : {
         *demo_wrap*.o(.rodata .rodata.*)
         *demo_console*.o(.rodata .rodata.*)
-        *demo_v01_beta*.o(.rodata .rodata.*)
+        *demo_v0*.o(.rodata .rodata.*)
         *agent_svc_x86.o(.rodata .rodata.*)
         *display_svc_x86.o(.rodata .rodata.*)
         *input_svc_x86.o(.rodata .rodata.*)
@@ -60,7 +60,7 @@ SECTIONS
     .user.data : {
         *demo_wrap*.o(.data .data.*)
         *demo_console*.o(.data .data.*)
-        *demo_v01_beta*.o(.data .data.*)
+        *demo_v0*.o(.data .data.*)
         *agent_svc_x86.o(.data .data.*)
         *display_svc_x86.o(.data .data.*)
         *input_svc_x86.o(.data .data.*)
@@ -73,8 +73,8 @@ SECTIONS
         *demo_wrap*.o(COMMON)
         *demo_console*.o(.bss .bss.*)
         *demo_console*.o(COMMON)
-        *demo_v01_beta*.o(.bss .bss.*)
-        *demo_v01_beta*.o(COMMON)
+        *demo_v0*.o(.bss .bss.*)
+        *demo_v0*.o(COMMON)
         *agent_svc_x86.o(.bss .bss.*)
         *agent_svc_x86.o(COMMON)
         *display_svc_x86.o(.bss .bss.*)

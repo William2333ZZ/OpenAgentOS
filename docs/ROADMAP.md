@@ -1,8 +1,8 @@
-# AgentOS 路线图
+# OpenAgentOS 路线图
 
-日期：2026-06-08（**v0.1-beta** x86 GA ✅；见 [V0.1_BETA.md](./V0.1_BETA.md)）
+日期：2026-06-08（**v0.2-rc** ✅ · **v0.1-beta** ✅；见 [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md)）
 
-本文档描述 AgentOS **未来应用方向**与**分阶段实现计划**。当前基线：**v0.1-beta**（v6.5 + v7 Fleet/Remote/Policy/Mesh，x86 子 OS 可运行）。
+本文档描述 OpenAgentOS **未来应用方向**与**分阶段实现计划**。当前基线：**v0.2-rc**（双平台 v7 + policy load + 分项 check）。
 
 相关文档：[DESIGN.md](./DESIGN.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [AGENT_MODEL.md](./AGENT_MODEL.md) · [V5_IMPLEMENTATION.md](./V5_IMPLEMENTATION.md) · [V6_IMPLEMENTATION.md](./V6_IMPLEMENTATION.md) · [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) · [OS_BENCHMARK.md](./OS_BENCHMARK.md)
 

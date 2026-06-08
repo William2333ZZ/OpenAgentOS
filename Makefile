@@ -23,6 +23,9 @@ MBEDTLS_OBJS := $(addprefix $(MBEDTLS_DIR)/library/, $(addsuffix .o,$(MBEDTLS_LI
 
 PLATFORM_RV_OBJS := kernel/platform_rv.o kernel/platform_riscv_virt.o kernel/smp.o kernel/trap_init.o kernel/spinlock.o kernel/ota_stub.o kernel/catalog_stub.o kernel/tenant_stub.o kernel/virtio_ui_stub.o kernel/sched_syscall.o kernel/arch/riscv/trap_handler.o kernel/arch/riscv/agent_arch.o kernel/fleet_stub.o kernel/policy_stub.o kernel/remote_stub.o kernel/mesh_stub.o
 
+V7_RV_PLATFORM_OBJS := $(filter-out kernel/fleet_stub.o kernel/policy_stub.o kernel/remote_stub.o kernel/mesh_stub.o,$(PLATFORM_RV_OBJS)) \
+                       kernel/fleet.o kernel/policy.o kernel/remote.o kernel/mesh.o
+
 LDFLAGS := -T linker.ld -nostdlib -nostartfiles -static
 
 COMMON_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o kernel/printf.o \
@@ -194,6 +197,14 @@ CONSOLE_QUOTA_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kern
            kernel/kernel_console_quota.o user/demo_console_quota.o user/agent_svc.o \
            user/display_svc.o user/input_svc.o user/console_svc.o
 
+CONSOLE_V7_BASE_OBJS := $(filter-out kernel/tenant_stub.o,$(V7_RV_PLATFORM_OBJS)) kernel/entry.o kernel/trap.o kernel/uart.o kernel/printf.o \
+           kernel/halt.o kernel/mem.o kernel/ipc.o kernel/uaccess.o kernel/ramfs.o \
+           kernel/tool.o kernel/audit.o kernel/namespace.o kernel/quota.o kernel/http-faux.o kernel/agent.o kernel/sched.o kernel/timer.o \
+           kernel/vm.o kernel/session.o kernel/tenant.o kernel/virtio.o kernel/virtio_gpu.o \
+           kernel/virtio_input.o kernel/llm_stub.o kernel/persist_stub.o kernel/elfload_stub.o \
+           kernel/kernel_console_v7.o user/demo_console_v7.o user/agent_svc.o \
+           user/display_svc.o user/input_svc.o user/console_svc.o
+
 DESKTOP_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o kernel/printf.o \
            kernel/halt.o kernel/mem.o kernel/ipc.o kernel/uaccess.o kernel/ramfs.o \
            kernel/tool.o kernel/audit.o kernel/namespace.o kernel/quota.o kernel/http-faux.o kernel/agent.o kernel/sched.o kernel/timer.o \
@@ -270,7 +281,8 @@ OTA_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o 
         run-load check-load load worker.agent \
         platform check-platform run-x86-smoke check-wrap-x86 check-console-x86 \
         check-console-x86-tenant check-console-x86-audit check-console-x86-namespace \
-        check-console-x86-all check-v0.1-beta run-x86-v01-beta \
+        check-console-x86-all check-v0.1-beta check-v0.2-rc check-console-v7 check-fleet-x86 \
+        run-x86-v01-beta run-x86-v02-rc \
         run-smp check-smp smp \
         run-ota check-ota ota \
         pipeline llm harness tools v1
@@ -398,6 +410,9 @@ kernel-console-namespace.elf: $(filter-out kernel/tenant_stub.o kernel/namespace
 
 kernel-console-quota.elf: $(filter-out kernel/tenant_stub.o kernel/namespace_stub.o kernel/quota_stub.o,$(CONSOLE_QUOTA_BASE_OBJS)) linker.ld
 	$(CC) $(LDFLAGS) -o $@ $(filter-out kernel/tenant_stub.o kernel/namespace_stub.o kernel/quota_stub.o,$(CONSOLE_QUOTA_BASE_OBJS))
+
+kernel-console-v7.elf: $(CONSOLE_V7_BASE_OBJS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V7_BASE_OBJS)
 
 kernel-desktop.elf: $(DESKTOP_BASE_OBJS) linker.ld user/worker_elf.inc
 	$(CC) $(LDFLAGS) -o $@ $(DESKTOP_BASE_OBJS)
@@ -738,6 +753,12 @@ user/demo_console_namespace.o: user/demo_console_namespace.c user/libagent.h inc
 user/demo_console_quota.o: user/demo_console_quota.c user/libagent.h include/agentos.h
 	$(CC) $(CFLAGS) -c -o $@ user/demo_console_quota.c
 
+user/demo_console_v7.o: user/demo_console_v7.c user/libagent.h include/agentos.h
+	$(CC) $(CFLAGS) -c -o $@ user/demo_console_v7.c
+
+kernel/kernel_console_v7.o: kernel/kernel_console_v7.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
 user/demo_desktop.o: user/demo_desktop.c user/worker_elf.inc user/libagent.h include/agentos.h
 	$(CC) $(CFLAGS) -c -o $@ user/demo_desktop.c
 
@@ -1002,6 +1023,10 @@ check-console-quota:
 	chmod +x scripts/check-console-quota.sh
 	./scripts/check-console-quota.sh
 
+check-console-v7: kernel-console-v7.elf
+	chmod +x scripts/check-console-v7.sh
+	./scripts/check-console-v7.sh
+
 console-quota: check-console-quota
 
 run-desktop: kernel-desktop.elf
@@ -1094,6 +1119,10 @@ X86_V01_BETA_KERN_OBJS := $(X86_ARCH_OBJS) kernel/platform_x86_v01.o \
 X86_V01_BETA_OBJS := $(X86_V01_BETA_KERN_OBJS) kernel/kernel_v01_beta_x86.o \
                  user/demo_v01_beta_x86.o $(X86_CONSOLE_SVC_OBJS)
 
+X86_V02_RC_KERN_OBJS := $(subst kernel/platform_x86_v01.o,kernel/platform_x86_v02.o,$(X86_V01_BETA_KERN_OBJS))
+X86_V02_RC_OBJS := $(X86_V02_RC_KERN_OBJS) kernel/kernel_v02_rc_x86.o \
+                 user/demo_v02_rc_x86.o $(X86_CONSOLE_SVC_OBJS)
+
 X86_CONSOLE_OBJS := $(X86_CONSOLE_KERN_OBJS) kernel/kernel_console_x86_quota.o \
                  user/demo_console_quota_x86.o $(X86_CONSOLE_SVC_OBJS)
 
@@ -1129,6 +1158,9 @@ kernel-x86-console-namespace.elf: $(X86_CONSOLE_NAMESPACE_OBJS) linker_x86.ld
 kernel-x86-v01-beta.elf: $(X86_V01_BETA_OBJS) linker_x86.ld
 	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V01_BETA_OBJS)
 
+kernel-x86-v02-rc.elf: $(X86_V02_RC_OBJS) linker_x86.ld
+	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V02_RC_OBJS)
+
 kernel-x86-smoke.elf: $(X86_SMOKE_OBJS) linker_x86.ld
 	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_SMOKE_OBJS)
 
@@ -1158,6 +1190,9 @@ user/demo_console_namespace_x86.o: user/demo_console_namespace.c user/libagent.h
 
 user/demo_v01_beta_x86.o: user/demo_v01_beta.c user/libagent.h include/agentos.h
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v01_beta.c
+
+user/demo_v02_rc_x86.o: user/demo_v02_rc.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v02_rc.c
 
 user/agent_svc_x86.o: user/agent_svc.c user/libagent.h include/agentos.h
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/agent_svc.c
@@ -1200,8 +1235,14 @@ kernel/kernel_console_x86_namespace.o: kernel/kernel_console_x86.c
 kernel/kernel_v01_beta_x86.o: kernel/kernel_v01_beta_x86.c
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
 
+kernel/kernel_v02_rc_x86.o: kernel/kernel_v02_rc_x86.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
+
 kernel/platform_x86_v01.o: kernel/platform.c include/platform.h
 	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"v0.1-beta\" -c -o $@ $<
+
+kernel/platform_x86_v02.o: kernel/platform.c include/platform.h
+	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"v0.2-rc\" -c -o $@ $<
 
 kernel/persist_x86.o: kernel/persist.c
 	$(X86_CC) $(X86_CFLAGS) -DENABLE_PERSIST -c -o $@ $<
@@ -1244,8 +1285,23 @@ check-v0.1-beta:
 	chmod +x scripts/check-v0.1-beta.sh
 	./scripts/check-v0.1-beta.sh
 
+check-v0.2-rc:
+	chmod +x scripts/check-v0.2-rc.sh
+	./scripts/check-v0.2-rc.sh
+
+check-fleet-x86:
+	chmod +x scripts/check-fleet-x86.sh
+	./scripts/check-fleet-x86.sh
+
 run-x86-v01-beta: kernel-x86-v01-beta.elf
 	qemu-system-x86_64 -machine pc -nographic -kernel kernel-x86-v01-beta.elf -display none
+
+run-x86-v02-rc: kernel-x86-v02-rc.elf
+	qemu-system-x86_64 -machine pc -nographic -kernel kernel-x86-v02-rc.elf -display none
+
+run-console-v7: kernel-console-v7.elf
+	$(QEMU) -machine virt -nographic -bios default -global virtio-mmio.force-legacy=false \
+	  -kernel kernel-console-v7.elf
 
 # --- v4.0 Platform: x86_64-pc smoke (legacy target names) ---
 kernel/platform_rv.o: kernel/platform.c include/platform.h

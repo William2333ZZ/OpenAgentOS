@@ -1,0 +1,29 @@
+#include "../user/libagent.h"
+
+static int str_eq(const char *a, const char *b) {
+    int i = 0;
+    while (a[i] && b[i]) {
+        if (a[i] != b[i])
+            return 0;
+        i++;
+    }
+    return a[i] == b[i];
+}
+
+void init_v02_rc_agent(void) {
+    struct agent_msg msg;
+
+    agent_log_str("[init] OpenAgentOS v0.2-rc demo\n");
+    agent_log_str("[init] waiting for policy load + fleet ...\n");
+
+    for (;;) {
+        agent_recv_msg(&msg);
+        if (msg.type == MSG_RESULT &&
+            str_eq(msg.payload, "v0.2-rc demo complete")) {
+            agent_log_str("[init] v0.2-rc demo complete\n");
+            agent_send_msg(DISPLAY_AGENT_ID, MSG_PIPELINE_DONE, "done");
+            agent_send_msg(INPUT_AGENT_ID, MSG_PIPELINE_DONE, "done");
+            agent_exit(0);
+        }
+    }
+}

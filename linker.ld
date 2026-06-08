@@ -7,31 +7,31 @@ SECTIONS
 
     .text : {
         *(.text.init)
-        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.text .text.*)
+        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_console_v7.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.text .text.*)
     }
 
     . = ALIGN(16);
     _etext = .;
 
     .rodata : {
-        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.rodata .rodata.*)
-        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.srodata .srodata.*)
+        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_console_v7.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.rodata .rodata.*)
+        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_console_v7.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.srodata .srodata.*)
     }
 
     . = ALIGN(16);
     _erodata = .;
 
     .data : {
-        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.data .data.*)
+        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_console_v7.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.data .data.*)
     }
 
     .bss : {
-        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.bss .bss.*)
-        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(COMMON)
+        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_console_v7.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.bss .bss.*)
+        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_console_v7.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(COMMON)
     }
 
     .sbss : {
-        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.sbss .sbss.*)
+        EXCLUDE_FILE(*demo_pipeline.o *demo_llm.o *demo_harness.o *demo_tools.o *demo_v1.o *demo_memory.o *demo_memory2.o *demo_orchestrator.o *demo_storage2.o *demo_tools2.o *demo_wrap.o *demo_vm3.o *demo_edge.o *demo_router.o *demo_load.o *demo_net.o *demo_net_prod.o *demo_ui.o *demo_console.o *demo_console_session.o *demo_console_orch.o *demo_console_pack.o *demo_catalog.o *demo_console_tenant.o *demo_console_audit.o *demo_console_namespace.o *demo_console_quota.o *demo_console_v7.o *demo_desktop.o *demo_box.o *demo_bench_ipc.o *demo_persist2.o *demo_smp.o *demo_ota.o *agent_svc.o *router_svc.o *network_svc.o *network_prod_svc.o *display_svc.o *input_svc.o *console_svc.o *shell_svc.o *orch_pipeline.o *storage_svc.o) *(.sbss .sbss.*)
     }
 
     . = ALIGN(16);
@@ -67,6 +67,7 @@ SECTIONS
         *demo_console_audit.o(.text .text.*)
         *demo_console_namespace.o(.text .text.*)
         *demo_console_quota.o(.text .text.*)
+        *demo_console_v7.o(.text .text.*)
         *demo_desktop.o(.text .text.*)
         *demo_box.o(.text .text.*)
         *demo_bench_ipc.o(.text .text.*)
@@ -115,6 +116,7 @@ SECTIONS
         *demo_console_audit.o(.rodata .rodata.* .srodata .srodata.*)
         *demo_console_namespace.o(.rodata .rodata.* .srodata .srodata.*)
         *demo_console_quota.o(.rodata .rodata.* .srodata .srodata.*)
+        *demo_console_v7.o(.rodata .rodata.* .srodata .srodata.*)
         *demo_desktop.o(.rodata .rodata.* .srodata .srodata.*)
         *demo_box.o(.rodata .rodata.* .srodata .srodata.*)
         *demo_bench_ipc.o(.rodata .rodata.* .srodata .srodata.*)
@@ -164,6 +166,7 @@ SECTIONS
         *demo_console_audit.o(.bss .bss.* .sbss .sbss.* COMMON)
         *demo_console_namespace.o(.bss .bss.* .sbss .sbss.* COMMON)
         *demo_console_quota.o(.bss .bss.* .sbss .sbss.* COMMON)
+        *demo_console_v7.o(.bss .bss.* .sbss .sbss.* COMMON)
         *demo_desktop.o(.bss .bss.* .sbss .sbss.* COMMON)
         *demo_box.o(.bss .bss.* .sbss .sbss.* COMMON)
         *demo_bench_ipc.o(.bss .bss.* .sbss .sbss.* COMMON)

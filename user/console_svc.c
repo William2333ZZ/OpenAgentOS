@@ -927,6 +927,18 @@ static int handle_line(char *line) {
                              (long)"v0.1-beta demo complete", 0);
         agent_exit(0);
     }
+    if (str_eq(line, "/quit v7")) {
+        agent_log_str("[console] quit v7\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"console demo v7 complete", 0);
+        agent_exit(0);
+    }
+    if (str_eq(line, "/quit rc")) {
+        agent_log_str("[console] quit rc\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"v0.2-rc demo complete", 0);
+        agent_exit(0);
+    }
     if (str_eq(line, "/quit box")) {
         agent_log_str("[console] quit box\n");
         agent_send_msg(1, MSG_RESULT, "box demo complete");

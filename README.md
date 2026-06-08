@@ -3,7 +3,9 @@
 [![CI](https://github.com/William2333ZZ/OpenAgentOS/actions/workflows/ci.yml/badge.svg)](https://github.com/William2333ZZ/OpenAgentOS/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-以 **Agent 为一等公民** 的轻量操作系统：**OpenAgentOS**。Capability 隔离、服务化 Agent（storage / router / network）、AOS2 持久化、动态 ELF 加载。当前默认运行在 QEMU **RISC-V `virt`** 与 **x86 `pc`** Console 子集；完整路线图见 [docs/ROADMAP.md](docs/ROADMAP.md) 与 [docs/V7_IMPLEMENTATION.md](docs/V7_IMPLEMENTATION.md)。
+以 **Agent 为一等公民** 的轻量操作系统：**OpenAgentOS**。Capability 隔离、服务化 Agent（storage / router / network）、AOS2 持久化、动态 ELF 加载。当前默认运行在 QEMU **RISC-V `virt`** 与 **x86 `pc`** Console 子集。
+
+**产品路线图**：[docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md) · **个人品牌**：[docs/BRAND.md](docs/BRAND.md)
 
 Agent IPC 设计参考 [pi Agent Harness](https://github.com/earendil-works/pi)（MIT，未捆绑在本仓库）；系统能力经统一 Tool 网关暴露。
 
@@ -323,6 +325,19 @@ make run-console-quota
 make check-console-quota    # CI：ipc burn + probe ENOSPC（~3s）
 ```
 
+### OpenAgentOS v0.2-rc（当前产品候选）
+
+双平台 v7 + Policy 文件加载：
+
+```bash
+make run-x86-v02-rc
+make check-v0.2-rc        # x86 v0.2-rc (~4s)
+make check-console-v7     # RISC-V v7 栈 (~5s)
+make check-fleet-x86     # x86 Fleet 子集
+```
+
+详见 [docs/V0.2_RC.md](docs/V0.2_RC.md)。
+
 ### OpenAgentOS v0.1-beta GA（x86 PC 子 OS）
 
 在当前 PC 上运行完整 Field Pilot 栈（v6 + v7 合并）：
@@ -395,6 +410,9 @@ python3 tools/deepseek-bridge.py
 | [docs/V5_IMPLEMENTATION.md](docs/V5_IMPLEMENTATION.md) | v5 Console 分阶段设计 |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 整体架构 |
 | [docs/AGENT_MODEL.md](docs/AGENT_MODEL.md) | Agent 数据模型 |
+| [docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md) | 统一产品路线图 v0.x → v1.0 |
+| [docs/BRAND.md](docs/BRAND.md) | 个人品牌与开源运营 |
+| [docs/V0.2_RC.md](docs/V0.2_RC.md) | v0.2-rc 双平台 v7 |
 | [docs/V0.1_BETA.md](docs/V0.1_BETA.md) | v0.1-beta GA 子 OS |
 | [docs/THIRD_PARTY.md](docs/THIRD_PARTY.md) | 第三方依赖与许可 |
 
@@ -453,9 +471,15 @@ scripts/             QEMU / LLM / v1 启动脚本
 | v6.3 | Resource quota + check-console-quota | ✅ |
 | v6.4 | x86 Console 子集 + check-console-x86 | ✅ |
 | v6.5 | x86 tenant/audit/namespace + check-console-x86-all | ✅ |
+| **v0.2-rc** | **双平台 v7 + policy load + check-v0.2-rc** | **✅** |
 | **v0.1-beta** | **x86 GA 子 OS（v7 全栈）+ check-v0.1-beta** | **✅** |
 | v7.0 | Fleet 遥测（合入 v0.1-beta） | ✅ |
 | v7.1 | Remote Console stub（合入 v0.1-beta） | ✅ |
 | v7.2 | Policy-as-Code（合入 v0.1-beta） | ✅ |
 | v7.3 | Agent Mesh MVP（合入 v0.1-beta） | ✅ |
 | **GA 1.0** | 生产 LTS（目标 2027 Q3） | 规划 |
+
+## License
+
+OpenAgentOS is licensed under the [Apache License 2.0](LICENSE).
+See [NOTICE](NOTICE) and [docs/THIRD_PARTY.md](docs/THIRD_PARTY.md) for third-party components.

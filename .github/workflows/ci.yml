@@ -18,6 +18,12 @@ jobs:
         run: |
           brew install i686-elf-gcc riscv64-elf-gcc qemu ripgrep
 
+      - name: Run check-v0.2-rc
+        run: make check-v0.2-rc
+
+      - name: Run check-console-v7
+        run: make check-console-v7
+
       - name: Run check-v0.1-beta
         run: make check-v0.1-beta
 
