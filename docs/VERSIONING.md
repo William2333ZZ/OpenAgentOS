@@ -24,12 +24,20 @@ OpenAgentOS 采用 [语义化版本](https://semver.org/lang/zh-CN/)（SemVer）
 | 0.1.0 | `kernel-x86-v01-beta.elf` | `make check-0.1.0`（别名 `check-v0.1-beta`） |
 | 0.2.0 | `kernel-x86-v02-rc.elf` | `make check-0.2.0`（别名 `check-v0.2-rc`） |
 | 0.3.0 | `kernel-x86-0.3.0.elf` | `make check-0.3.0` |
+| 0.4.0 | `kernel-console-v040.elf`（RISC-V） | `make check-0.4.0`（别名 `check-remote-console`） |
 
 ## 0.3.0 能力摘要
 
 - **Fleet ingest**：`/fleet ingest [url]` — 读取 `/agent/0/fleet.json`，经 HTTP_FAUX POST 到 collector（URL 含 `ingest` 即成功）
 - **Remote ping**：`/remote ping` — 需先 `/remote enable`，用于远程控制台存活探测
 
+## 0.4.0 能力摘要
+
+- **VirtIO-net**：RISC-V `virt` + `-netdev user` + `virtio-net-device`，DHCP/ARP 后走 slirp
+- **Fleet ingest（真 HTTP）**：`/fleet ingest http://10.0.2.2:8765/ingest` — `net_http_post` 到宿主机 `tools/fleet-collector.py`
+- **Remote TCP**：`/remote connect` — TCP 连 `10.0.2.2:5557`，发送 `LINK <token>`，期望 `PONG`（需先 `/remote enable`；宿主机跑 `tools/remote-gateway.py`）
+- **x86 实验**：`kernel-x86-0.4.0.elf` + VirtIO-net PCI 驱动在开发中，**产品验收以 RISC-V 为准**
+
 ## GitHub Release
 
-Release 标签使用 semver 无前缀：`0.1.0`、`0.2.0`、`0.3.0`。历史 `v0.1-beta` / `v0.2-rc` 标签保留指向同一 commit 时可加 Release Note 说明映射关系。
+Release 标签使用 semver 无前缀：`0.1.0`、`0.2.0`、`0.3.0`、`0.4.0`。历史 `v0.1-beta` / `v0.2-rc` 标签保留指向同一 commit 时可加 Release Note 说明映射关系。

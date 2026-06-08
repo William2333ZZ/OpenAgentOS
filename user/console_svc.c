@@ -121,6 +121,7 @@ static void cmd_help(void) {
     console_puts("  /remote enable     enable remote console\n");
     console_puts("  /remote disable    disable remote console\n");
     console_puts("  /remote ping       liveness check (requires enable)\n");
+    console_puts("  /remote connect    TCP link to host gateway (requires net)\n");
     console_puts("  /mesh status       mesh beacon state\n");
     console_puts("  /mesh beacon       emit UDP beacon (stub)\n");
     console_puts("  /mesh probe <svc>  probe local service\n");
@@ -135,6 +136,7 @@ static void cmd_help(void) {
     console_puts("  /quit quota        exit quota demo\n");
     console_puts("  /quit beta         exit v0.1-beta GA demo\n");
     console_puts("  /quit 0.3.0        exit 0.3.0 demo\n");
+    console_puts("  /quit 0.4.0        exit 0.4.0 demo\n");
     console_puts("  /quit box          exit headless box demo\n");
 }
 
@@ -848,7 +850,15 @@ static int cmd_remote(const char *args) {
         }
         return 0;
     }
-    console_puts("usage: /remote status|enable|disable|ping\n");
+    if (str_eq(args, "connect")) {
+        rc = (int)sys_agent_tool(TOOL_REMOTE, REMOTE_CMD_CONNECT, 0, 0);
+        if (rc < 0) {
+            console_puts("remote connect failed\n");
+            return -1;
+        }
+        return 0;
+    }
+    console_puts("usage: /remote status|enable|disable|ping|connect\n");
     return -1;
 }
 
@@ -981,6 +991,12 @@ static int handle_line(char *line) {
         agent_log_str("[console] quit 0.3.0\n");
         (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
                              (long)"0.3.0 demo complete", 0);
+        agent_exit(0);
+    }
+    if (str_eq(line, "/quit 0.4.0")) {
+        agent_log_str("[console] quit 0.4.0\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"0.4.0 demo complete", 0);
         agent_exit(0);
     }
     if (str_eq(line, "/quit box")) {

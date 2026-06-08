@@ -21,3 +21,8 @@ int remote_ping(struct agent *a) {
     (void)a;
     return 0;
 }
+
+int remote_connect(struct agent *a) {
+    (void)a;
+    return 0;
+}

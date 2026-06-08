@@ -325,7 +325,32 @@ make run-console-quota
 make check-console-quota    # CI：ipc burn + probe ENOSPC（~3s）
 ```
 
-### OpenAgentOS 0.3.0（当前）
+### OpenAgentOS 0.4.0（当前）
+
+VirtIO-net Fleet HTTP POST + Remote TCP 真链路（**验收用 RISC-V**；x86 PCI net 实验性）：
+
+```bash
+# 终端 1：启动 collector + gateway（check 脚本会自动拉起）
+python3 tools/fleet-collector.py --host 0.0.0.0 --port 8765
+python3 tools/remote-gateway.py --port 5557
+
+# 终端 2：交互运行
+make run-riscv-0.4.0
+# agentos> 后：/remote enable → /remote connect → /fleet push →
+#   /fleet ingest http://10.0.2.2:8765/ingest → /quit 0.4.0
+
+make check-0.4.0          # 别名 check-remote-console (~13s)
+```
+
+x86 实验（VirtIO-net PCI，RX 待完善）：
+
+```bash
+make run-x86-0.4.0
+```
+
+详见 [docs/VERSIONING.md](docs/VERSIONING.md)。
+
+### OpenAgentOS 0.3.0
 
 Fleet HTTP ingest + Remote ping（HTTP_FAUX 链路）：
 
@@ -484,6 +509,7 @@ scripts/             QEMU / LLM / v1 启动脚本
 | v6.5 | x86 tenant/audit/namespace + check-console-x86-all | ✅ |
 | **v0.2-rc** | **双平台 v7 + policy load + check-v0.2-rc** | **✅ (semver 0.2.0)** |
 | **0.3.0** | **Fleet ingest + Remote ping + check-0.3.0** | **✅** |
+| **0.4.0** | **VirtIO-net ingest + Remote TCP + check-0.4.0** | **✅** |
 | **v0.1-beta** | **x86 GA 子 OS（v7 全栈）+ check-v0.1-beta** | **✅ (semver 0.1.0)** |
 | v7.0 | Fleet 遥测（合入 v0.1-beta） | ✅ |
 | v7.1 | Remote Console stub（合入 v0.1-beta） | ✅ |

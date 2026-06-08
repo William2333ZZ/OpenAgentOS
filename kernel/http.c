@@ -124,11 +124,17 @@ int agent_http_fetch(const char *url, char *buf, int buflen) {
         if (rc >= 0)
             return rc;
         kprintf("[http] native failed rc=%d, trying bridge\n", rc);
+#ifndef HTTP_NO_BRIDGE
         rc = http_bridge(url, buf, buflen);
         if (rc >= 0)
             return rc;
         kprintf("[http] bridge failed rc=%d, using faux\n", rc);
+#endif
+#ifdef HTTP_FAUX
         return http_faux(url, buf, buflen);
+#else
+        return rc;
+#endif
     }
 #endif
 }

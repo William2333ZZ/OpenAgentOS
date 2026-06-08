@@ -202,8 +202,12 @@ CONSOLE_V7_BASE_OBJS := $(filter-out kernel/tenant_stub.o,$(V7_RV_PLATFORM_OBJS)
            kernel/tool.o kernel/audit.o kernel/namespace.o kernel/quota.o kernel/http-faux.o kernel/agent.o kernel/sched.o kernel/timer.o \
            kernel/vm.o kernel/session.o kernel/tenant.o kernel/virtio.o kernel/virtio_gpu.o \
            kernel/virtio_input.o kernel/llm_stub.o kernel/persist_stub.o kernel/elfload_stub.o \
+           kernel/netstack_stub.o \
            kernel/kernel_console_v7.o user/demo_console_v7.o user/agent_svc.o \
            user/display_svc.o user/input_svc.o user/console_svc.o
+
+CONSOLE_V040_RV_OBJS := $(filter-out kernel/kernel_console_v7.o user/demo_console_v7.o kernel/http-faux.o kernel/netstack_stub.o,$(CONSOLE_V7_BASE_OBJS)) \
+           kernel/http.o kernel/netstack.o kernel/virtio_net.o kernel/kernel_v040_riscv.o user/demo_v040.o
 
 DESKTOP_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o kernel/printf.o \
            kernel/halt.o kernel/mem.o kernel/ipc.o kernel/uaccess.o kernel/ramfs.o \
@@ -281,9 +285,10 @@ OTA_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o 
         run-load check-load load worker.agent \
         platform check-platform run-x86-smoke check-wrap-x86 check-console-x86 \
         check-console-x86-tenant check-console-x86-audit check-console-x86-namespace \
-        check-console-x86-all check-v0.1-beta check-v0.2-rc check-0.1.0 check-0.2.0 check-0.3.0 \
+        check-console-x86-all check-v0.1-beta check-v0.2-rc check-0.1.0 check-0.2.0 \
+        check-0.3.0 check-0.4.0 check-remote-console \
         check-console-v7 check-fleet-x86 \
-        run-x86-v01-beta run-x86-v02-rc run-x86-0.3.0 \
+        run-x86-v01-beta run-x86-v02-rc run-x86-0.3.0 run-x86-0.4.0 run-riscv-0.4.0 \
         run-smp check-smp smp \
         run-ota check-ota ota \
         pipeline llm harness tools v1
@@ -414,6 +419,9 @@ kernel-console-quota.elf: $(filter-out kernel/tenant_stub.o kernel/namespace_stu
 
 kernel-console-v7.elf: $(CONSOLE_V7_BASE_OBJS) linker.ld
 	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V7_BASE_OBJS)
+
+kernel-console-v040.elf: $(CONSOLE_V040_RV_OBJS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V040_RV_OBJS)
 
 kernel-desktop.elf: $(DESKTOP_BASE_OBJS) linker.ld user/worker_elf.inc
 	$(CC) $(LDFLAGS) -o $@ $(DESKTOP_BASE_OBJS)
@@ -1112,6 +1120,7 @@ X86_V01_BETA_KERN_OBJS := $(X86_ARCH_OBJS) kernel/platform_x86_v01.o \
                  kernel/mem_x86.o kernel/ipc_x86.o kernel/uaccess_x86.o kernel/ramfs_x86.o \
                  kernel/tool_x86.o kernel/audit_x86.o kernel/namespace_x86.o kernel/quota_x86.o \
                  kernel/fleet_x86.o kernel/policy_x86.o kernel/remote_x86.o kernel/mesh_x86.o \
+                 kernel/netstack_stub_x86.o \
                  kernel/http-faux_x86.o kernel/agent_x86.o kernel/sched_x86.o \
                  kernel/sched_syscall_x86.o kernel/session_x86.o kernel/tenant_x86.o \
                  kernel/llm_stub_x86.o kernel/elfload_stub_x86.o kernel/persist_stub_x86.o \
@@ -1127,6 +1136,10 @@ X86_V02_RC_OBJS := $(X86_V02_RC_KERN_OBJS) kernel/kernel_v02_rc_x86.o \
 X86_V030_KERN_OBJS := $(subst kernel/platform_x86_v02.o,kernel/platform_x86_v03.o,$(X86_V02_RC_KERN_OBJS))
 X86_V030_OBJS := $(X86_V030_KERN_OBJS) kernel/kernel_v030_x86.o \
                  user/demo_v030_x86.o $(X86_CONSOLE_SVC_OBJS)
+
+X86_V040_KERN_OBJS := $(filter-out kernel/netstack_stub_x86.o,$(subst kernel/platform_x86_v03.o,kernel/platform_x86_v04.o,$(subst kernel/http-faux_x86.o,kernel/http_x86.o kernel/netstack_x86.o kernel/arch/x86/virtio_pci_net.o,$(X86_V030_KERN_OBJS))))
+X86_V040_OBJS := $(X86_V040_KERN_OBJS) kernel/kernel_v040_x86.o \
+                 user/demo_v040_x86.o $(X86_CONSOLE_SVC_OBJS)
 
 X86_CONSOLE_OBJS := $(X86_CONSOLE_KERN_OBJS) kernel/kernel_console_x86_quota.o \
                  user/demo_console_quota_x86.o $(X86_CONSOLE_SVC_OBJS)
@@ -1169,6 +1182,9 @@ kernel-x86-v02-rc.elf: $(X86_V02_RC_OBJS) linker_x86.ld
 kernel-x86-0.3.0.elf: $(X86_V030_OBJS) linker_x86.ld
 	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V030_OBJS)
 
+kernel-x86-0.4.0.elf: $(X86_V040_OBJS) linker_x86.ld
+	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V040_OBJS)
+
 kernel-x86-smoke.elf: $(X86_SMOKE_OBJS) linker_x86.ld
 	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_SMOKE_OBJS)
 
@@ -1204,6 +1220,9 @@ user/demo_v02_rc_x86.o: user/demo_v02_rc.c user/libagent.h include/agentos.h
 
 user/demo_v030_x86.o: user/demo_v030.c user/libagent.h include/agentos.h
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v030.c
+
+user/demo_v040_x86.o: user/demo_v040.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v040.c
 
 user/agent_svc_x86.o: user/agent_svc.c user/libagent.h include/agentos.h
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/agent_svc.c
@@ -1252,6 +1271,9 @@ kernel/kernel_v02_rc_x86.o: kernel/kernel_v02_rc_x86.c
 kernel/kernel_v030_x86.o: kernel/kernel_v030_x86.c
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
 
+kernel/kernel_v040_x86.o: kernel/kernel_v040_x86.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
+
 kernel/platform_x86_v01.o: kernel/platform.c include/platform.h
 	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"0.1.0\" -c -o $@ $<
 
@@ -1260,6 +1282,15 @@ kernel/platform_x86_v02.o: kernel/platform.c include/platform.h
 
 kernel/platform_x86_v03.o: kernel/platform.c include/platform.h
 	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"0.3.0\" -c -o $@ $<
+
+kernel/platform_x86_v04.o: kernel/platform.c include/platform.h
+	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"0.4.0\" -c -o $@ $<
+
+kernel/http_x86.o: kernel/http.c
+	$(X86_CC) $(X86_CFLAGS) -DHTTP_NO_BRIDGE -c -o $@ $<
+
+kernel/arch/x86/virtio_pci_net.o: kernel/arch/x86/virtio_pci_net.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
 
 kernel/persist_x86.o: kernel/persist.c
 	$(X86_CC) $(X86_CFLAGS) -DENABLE_PERSIST -c -o $@ $<
@@ -1314,6 +1345,12 @@ check-0.3.0:
 	chmod +x scripts/check-0.3.0.sh
 	./scripts/check-0.3.0.sh
 
+check-0.4.0:
+	chmod +x scripts/check-0.4.0.sh
+	./scripts/check-0.4.0.sh
+
+check-remote-console: check-0.4.0
+
 check-fleet-x86:
 	chmod +x scripts/check-fleet-x86.sh
 	./scripts/check-fleet-x86.sh
@@ -1326,6 +1363,15 @@ run-x86-v02-rc: kernel-x86-v02-rc.elf
 
 run-x86-0.3.0: kernel-x86-0.3.0.elf
 	qemu-system-x86_64 -machine pc -nographic -kernel kernel-x86-0.3.0.elf -display none
+
+run-x86-0.4.0: kernel-x86-0.4.0.elf
+	qemu-system-x86_64 -machine pc -nographic -kernel kernel-x86-0.4.0.elf -display none \
+	  -netdev user,id=net0 -device virtio-net-pci,netdev=net0
+
+run-riscv-0.4.0: kernel-console-v040.elf
+	$(QEMU) -machine virt -nographic -bios default -global virtio-mmio.force-legacy=false \
+	  -netdev user,id=net0 -device virtio-net-device,netdev=net0 \
+	  -kernel kernel-console-v040.elf
 
 run-console-v7: kernel-console-v7.elf
 	$(QEMU) -machine virt -nographic -bios default -global virtio-mmio.force-legacy=false \

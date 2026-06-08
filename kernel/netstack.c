@@ -80,6 +80,22 @@ static int gw_mac_valid;
 static uint8_t peer_mac[6];
 static uint32_t peer_mac_ip;
 static int peer_mac_valid;
+
+#ifdef PLATFORM_X86_64_PC
+static void net_slirp_fallback_mac(void) {
+    static const uint8_t slirp_mac[6] = {0x52, 0x55, 0x0a, 0x00, 0x02, 0x02};
+    int i;
+
+    for (i = 0; i < 6; i++)
+        gw_mac[i] = slirp_mac[i];
+    gw_mac_valid = 1;
+    for (i = 0; i < 6; i++)
+        peer_mac[i] = slirp_mac[i];
+    peer_mac_ip = NET_GW_HOST;
+    peer_mac_valid = 1;
+}
+#endif
+
 static uint8_t rx_frame[NET_FRAME_MAX];
 static uint8_t tx_udp_buf[NET_FRAME_MAX];
 static uint8_t tx_ip_buf[NET_FRAME_MAX];
@@ -886,9 +902,13 @@ void netstack_init(void) {
             (our_ip >> 24) & 0xff, (our_ip >> 16) & 0xff, (our_ip >> 8) & 0xff,
             our_ip & 0xff, (dns_server >> 24) & 0xff, (dns_server >> 16) & 0xff,
             (dns_server >> 8) & 0xff, dns_server & 0xff);
-    if (!gw_mac_valid && arp_resolve(NET_GW_HOST, 3000) != 0)
+    if (!gw_mac_valid && arp_resolve(NET_GW_HOST, 3000) != 0) {
         kprintf("[net] arp gw timeout (continuing)\n");
-    else
+#ifdef PLATFORM_X86_64_PC
+        net_slirp_fallback_mac();
+        kprintf("[net] slirp gw mac fallback ok\n");
+#endif
+    } else
         kprintf("[net] arp gw ok\n");
 }
 

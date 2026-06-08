@@ -778,6 +778,8 @@ static int run_remote(struct agent *a, long arg0, long arg1, long arg2) {
         return remote_disable(a);
     case REMOTE_CMD_PING:
         return remote_ping(a);
+    case REMOTE_CMD_CONNECT:
+        return remote_connect(a);
     default:
         return EINVAL;
     }

@@ -8,9 +8,11 @@
 #include "../include/platform.h"
 #include "../include/agentos.h"
 #include "../include/version.h"
+#include "netstack.h"
 
 #define FLEET_CACHE "/agent/0/fleet.json"
 #define FLEET_COLLECTOR_DEFAULT "http://ingest/openagentos"
+#define FLEET_COLLECTOR_NET "http://10.0.2.2:8765/ingest"
 
 static int append_ulong(char *buf, int pos, int cap, unsigned long val) {
     char tmp[16];
@@ -42,6 +44,77 @@ static int append_int(char *buf, int pos, int cap, int val) {
         return append_ulong(buf, pos, cap, (unsigned long)(-val));
     }
     return append_ulong(buf, pos, cap, (unsigned long)val);
+}
+
+static int parse_http_url(const char *url, char *host, int hcap, char *path, int pcap,
+                          uint16_t *port) {
+    int i = 0;
+    int hp = 0;
+    int pp = 0;
+
+    if (!url || !host || !path || !port || hcap <= 0 || pcap <= 0)
+        return EINVAL;
+    if (url[0] != 'h' || url[1] != 't' || url[2] != 't' || url[3] != 'p')
+        return EINVAL;
+    i = 4;
+    if (url[i] == 's') {
+        i++;
+        if (url[i] != ':')
+            return EINVAL;
+    }
+    if (url[i] != ':' || url[i + 1] != '/' || url[i + 2] != '/')
+        return EINVAL;
+    i += 3;
+
+    while (url[i] && url[i] != '/' && url[i] != ':') {
+        if (hp >= hcap - 1)
+            return ENOSPC;
+        host[hp++] = url[i++];
+    }
+    host[hp] = '\0';
+    if (!hp)
+        return EINVAL;
+
+    *port = 80;
+    if (url[i] == ':') {
+        unsigned long p = 0;
+        i++;
+        while (url[i] >= '0' && url[i] <= '9') {
+            p = p * 10 + (unsigned long)(url[i] - '0');
+            if (p > 65535)
+                return EINVAL;
+            i++;
+        }
+        *port = (uint16_t)p;
+    }
+
+    if (!url[i]) {
+        path[0] = '/';
+        path[1] = '\0';
+        return 0;
+    }
+    pp = 0;
+    while (url[i]) {
+        if (pp >= pcap - 1)
+            return ENOSPC;
+        path[pp++] = url[i++];
+    }
+    path[pp] = '\0';
+    return 0;
+}
+
+static int fleet_ingest_net(const char *url, const char *json, int json_len, char *resp,
+                            int resp_len) {
+    char host[64];
+    char path[128];
+    uint16_t port;
+    int rc;
+
+    (void)json_len;
+    rc = parse_http_url(url, host, (int)sizeof(host), path, (int)sizeof(path), &port);
+    if (rc < 0)
+        return rc;
+    return net_http_post(host, port, path, 0, json, resp, resp_len, 12000);
 }
 
 static int append_str(char *buf, int pos, int cap, const char *s) {
@@ -195,13 +268,29 @@ int fleet_ingest(struct agent *a, const char *url) {
     json[n] = '\0';
 
     if (!url || !url[0]) {
-        n = ramfs_read(FLEET_COLLECTOR_PATH, 0, url_buf, (int)sizeof(url_buf) - 1);
-        if (n > 0) {
-            url_buf[n] = '\0';
-            url = url_buf;
-        } else {
-            url = FLEET_COLLECTOR_DEFAULT;
+        if (netstack_ready())
+            url = FLEET_COLLECTOR_NET;
+        else {
+            n = ramfs_read(FLEET_COLLECTOR_PATH, 0, url_buf, (int)sizeof(url_buf) - 1);
+            if (n > 0) {
+                url_buf[n] = '\0';
+                url = url_buf;
+            } else {
+                url = FLEET_COLLECTOR_DEFAULT;
+            }
         }
+    }
+
+    if (netstack_ready()) {
+        rc = fleet_ingest_net(url, json, n, resp, (int)sizeof(resp));
+        if (rc < 0) {
+            kprintf("[fleet] ingest net failed agent=%d url=%s rc=%d\n",
+                    a ? a->id : -1, url, rc);
+            return rc;
+        }
+        kprintf("[fleet] ingest net ok agent=%d url=%s bytes=%d\n",
+                a ? a->id : -1, url, n);
+        return rc;
     }
 
     rc = agent_http_fetch(url, resp, (int)sizeof(resp));

@@ -27,6 +27,7 @@ flowchart LR
     b01[0.1.0 ✅]
     rc02[0.2.0 ✅]
     rc03[0.3.0 ✅]
+    rc04[0.4.0 ✅]
     ga10[1.0.0 GA]
   end
   v65 --> b01
@@ -35,7 +36,7 @@ flowchart LR
   v72 --> rc02
   v73 --> rc02
   v80 --> ga10
-  rc02 --> rc03 --> ga10
+  rc02 --> rc03 --> rc04 --> ga10
 ```
 
 **原则**：工程可以并行；产品 Release 只打包「可验收、可演示、可写文档」的组合。
@@ -82,11 +83,27 @@ flowchart LR
 
 ---
 
-## 5. 0.4+ → 1.0.0 GA 路径
+## 5. 已交付：0.4.0（2026-06）
+
+**主题**：VirtIO-net Fleet HTTP POST + Remote TCP 真链路（RISC-V 验收）
+
+| 子项 | 交付 | 验收 |
+|------|------|------|
+| VirtIO-net MMIO | RISC-V `virtio-net-device` + slirp | `make check-0.4.0` |
+| Fleet ingest（真 HTTP） | `net_http_post` → collector | `make check-0.4.0` |
+| Remote TCP | `/remote connect`、`REMOTE_CMD_CONNECT` | `make check-0.4.0` |
+| 产品内核 | `kernel-console-v040.elf` | `make check-0.4.0`（别名 `check-remote-console`） |
+| x86 实验 | `kernel-x86-0.4.0.elf` + PCI net 驱动 | 手动 `make run-x86-0.4.0`（RX 待完善） |
+
+**非目标（0.4.0 不做）**：TLS/HTTPS 生产栈、x86 PCI net 作为 Release gate。
+
+---
+
+## 6. 0.5+ → 1.0.0 GA 路径
 
 | 版本 | 时间（基准） | 主题 | 退出标准 |
 |------|-------------|------|----------|
-| **0.4.0** | 2026 Q4 | VirtIO-net Fleet push + Remote TCP 真链路 | `check-remote-console` 绿 |
+| **0.5.0** | 2026 Q4 | x86 VirtIO-net PCI 与 RISC-V  parity | `check-x86-0.4.0` 绿 |
 | **0.9.0** | 2027 Q2 | OTA 签名强制 + 渗透测试修复 | 安全审计清单 |
 | **1.0.0 GA** | 2027 Q3 | stable/LTS 渠道、集成商文档、≥1 真板 smoke | 见 [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) §6.2 |
 
@@ -98,27 +115,28 @@ flowchart LR
 
 ---
 
-## 6. 能力矩阵（规划）
+## 7. 能力矩阵（规划）
 
-| 能力 | 0.1.0 | 0.2.0 | 0.3.0 | 1.0.0 |
-|------|-----------|---------|---------|------|
-| x86 Console 子 OS | ✅ | ✅ | ✅ | ✅ |
-| RISC-V v7 栈 | stub | ✅ | ✅ | ✅ |
-| Policy 文件 load | 内存 deny | ✅ ramfs | ✅ GitOps 文档 | ✅ |
-| Fleet HTTP push | stub | collector | ingest (faux) | 生产 TLS |
-| Remote Console | host stub | stub | ping (faux) | token+审计 |
-| Mesh 跨设备 | beacon | beacon | host relay | 可选 |
-| 真板 | — | — | smoke | 必选 |
+| 能力 | 0.1.0 | 0.2.0 | 0.3.0 | 0.4.0 | 1.0.0 |
+|------|-----------|---------|---------|---------|------|
+| x86 Console 子 OS | ✅ | ✅ | ✅ | ✅ exp | ✅ |
+| RISC-V v7 栈 | stub | ✅ | ✅ | ✅ | ✅ |
+| Policy 文件 load | 内存 deny | ✅ ramfs | ✅ GitOps 文档 | ✅ | ✅ |
+| Fleet HTTP push | stub | collector | ingest (faux) | ingest (net) | 生产 TLS |
+| Remote Console | host stub | stub | ping (faux) | TCP connect | token+审计 |
+| Mesh 跨设备 | beacon | beacon | host relay | host relay | 可选 |
+| 真板 | — | — | smoke | smoke | 必选 |
 
 ---
 
-## 7. 验收命令速查
+## 8. 验收命令速查
 
 ```bash
 # 产品 Release gate（SemVer）
 make check-0.1.0          # 别名 check-v0.1-beta
 make check-0.2.0          # 别名 check-v0.2-rc
 make check-0.3.0          # fleet ingest + remote ping
+make check-0.4.0          # 别名 check-remote-console：RISC-V virtio-net + TCP (~13s)
 
 # v7 分项
 make check-console-v7     # RISC-V v7
@@ -130,7 +148,7 @@ make check-console-x86-all check-platform
 
 ---
 
-## 8. ABI 与破坏性变更
+## 9. ABI 与破坏性变更
 
 - **v0.x**：Tool 22–25 已分配，仅追加不修改语义
 - **v1.0**：syscall + Tool 表冻结声明；breaking 仅 major
@@ -138,7 +156,7 @@ make check-console-x86-all check-platform
 
 ---
 
-## 9. 与个人品牌的关系
+## 10. 与个人品牌的关系
 
 产品路线图由 **OpenAgentOS** 项目承载；个人品牌负责叙事、信任与社区。详见 **[BRAND.md](./BRAND.md)**。
 
