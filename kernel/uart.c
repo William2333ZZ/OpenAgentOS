@@ -78,9 +78,7 @@ int uart_getline(char *buf, int maxlen) {
     while (pos < maxlen - 1) {
         while (!uart_poll_char(&c))
             ;
-        if (c == '\r')
-            continue;
-        if (c == '\n') {
+        if (c == '\r' || c == '\n') {
             buf[pos] = '\0';
             uart_putc('\n');
             return pos;
@@ -168,9 +166,7 @@ int uart_getline(char *buf, int maxlen) {
         while (!uart_poll_char(&c)) {
             /* busy-wait; console REPL runs in service agent */
         }
-        if (c == '\r')
-            continue;
-        if (c == '\n') {
+        if (c == '\r' || c == '\n') {
             buf[pos] = '\0';
             uart_putc('\n');
             return pos;

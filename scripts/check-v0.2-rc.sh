@@ -46,7 +46,7 @@ wait_console_qemu "$LOG" "$QPID" "v0.2-rc demo complete" 180 || RC=1
 stop_console_qemu "$QPID" "$WRITER"
 
 fail=$RC
-for pat in "OpenAgentOS v0.2-rc" \
+for pat in "OpenAgentOS 0.2.0" \
            "\\[policy\\] load agent=10 path=/sys/policy/active rules=1" \
            "\\[policy\\] deny ok" \
            "\\[policy\\] allow ok" \

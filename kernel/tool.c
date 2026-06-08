@@ -724,6 +724,15 @@ static int run_fleet(struct agent *a, long arg0, long arg1, long arg2) {
         if (copy_from_user(url, (const void *)arg1, (unsigned long)len + 1) < 0)
             return EFAULT;
         return fleet_probe(a, url);
+    case FLEET_CMD_INGEST:
+        if (!arg1)
+            return fleet_ingest(a, 0);
+        len = user_strnlen((const char *)arg1, sizeof(url) - 1);
+        if (len < 0)
+            return EFAULT;
+        if (copy_from_user(url, (const void *)arg1, (unsigned long)len + 1) < 0)
+            return EFAULT;
+        return fleet_ingest(a, url);
     default:
         return EINVAL;
     }
@@ -767,6 +776,8 @@ static int run_remote(struct agent *a, long arg0, long arg1, long arg2) {
         return remote_enable(a);
     case REMOTE_CMD_DISABLE:
         return remote_disable(a);
+    case REMOTE_CMD_PING:
+        return remote_ping(a);
     default:
         return EINVAL;
     }

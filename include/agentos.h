@@ -125,6 +125,7 @@
 #define FLEET_CMD_STATUS 0
 #define FLEET_CMD_PUSH   1
 #define FLEET_CMD_PROBE  2
+#define FLEET_CMD_INGEST 3
 
 #define POLICY_CMD_STATUS 0
 #define POLICY_CMD_LOAD   1
@@ -135,6 +136,7 @@
 #define REMOTE_CMD_STATUS  0
 #define REMOTE_CMD_ENABLE  1
 #define REMOTE_CMD_DISABLE 2
+#define REMOTE_CMD_PING    3
 
 #define MESH_CMD_STATUS 0
 #define MESH_CMD_BEACON 1

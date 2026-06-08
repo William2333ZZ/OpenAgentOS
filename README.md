@@ -325,26 +325,37 @@ make run-console-quota
 make check-console-quota    # CI：ipc burn + probe ENOSPC（~3s）
 ```
 
-### OpenAgentOS v0.2-rc（当前产品候选）
+### OpenAgentOS 0.3.0（当前）
+
+Fleet HTTP ingest + Remote ping（HTTP_FAUX 链路）：
+
+```bash
+make run-x86-0.3.0
+make check-0.3.0          # fleet push → ingest + remote ping (~6s)
+```
+
+详见 [docs/VERSIONING.md](docs/VERSIONING.md)。
+
+### OpenAgentOS 0.2.0（v0.2-rc）
 
 双平台 v7 + Policy 文件加载：
 
 ```bash
 make run-x86-v02-rc
-make check-v0.2-rc        # x86 v0.2-rc (~4s)
+make check-0.2.0          # 别名 check-v0.2-rc (~4s)
 make check-console-v7     # RISC-V v7 栈 (~5s)
 make check-fleet-x86     # x86 Fleet 子集
 ```
 
 详见 [docs/V0.2_RC.md](docs/V0.2_RC.md)。
 
-### OpenAgentOS v0.1-beta GA（x86 PC 子 OS）
+### OpenAgentOS 0.1.0（v0.1-beta GA）
 
 在当前 PC 上运行完整 Field Pilot 栈（v6 + v7 合并）：
 
 ```bash
 make run-x86-v01-beta       # 交互
-make check-v0.1-beta        # 全链路验收（~4s）
+make check-0.1.0              # 别名 check-v0.1-beta (~4s)
 ```
 
 详见 [docs/V0.1_BETA.md](docs/V0.1_BETA.md)。
@@ -471,8 +482,9 @@ scripts/             QEMU / LLM / v1 启动脚本
 | v6.3 | Resource quota + check-console-quota | ✅ |
 | v6.4 | x86 Console 子集 + check-console-x86 | ✅ |
 | v6.5 | x86 tenant/audit/namespace + check-console-x86-all | ✅ |
-| **v0.2-rc** | **双平台 v7 + policy load + check-v0.2-rc** | **✅** |
-| **v0.1-beta** | **x86 GA 子 OS（v7 全栈）+ check-v0.1-beta** | **✅** |
+| **v0.2-rc** | **双平台 v7 + policy load + check-v0.2-rc** | **✅ (semver 0.2.0)** |
+| **0.3.0** | **Fleet ingest + Remote ping + check-0.3.0** | **✅** |
+| **v0.1-beta** | **x86 GA 子 OS（v7 全栈）+ check-v0.1-beta** | **✅ (semver 0.1.0)** |
 | v7.0 | Fleet 遥测（合入 v0.1-beta） | ✅ |
 | v7.1 | Remote Console stub（合入 v0.1-beta） | ✅ |
 | v7.2 | Policy-as-Code（合入 v0.1-beta） | ✅ |

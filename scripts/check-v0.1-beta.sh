@@ -49,7 +49,7 @@ wait_console_qemu "$LOG" "$QPID" "v0.1-beta demo complete" 180 || RC=1
 stop_console_qemu "$QPID" "$WRITER"
 
 fail=$RC
-for pat in "OpenAgentOS v0.1-beta" \
+for pat in "OpenAgentOS 0.1.0" \
            "\\[console\\] service ready id=10" \
            "\\[fleet\\] platform=" \
            "\\[fleet\\] push ok" \

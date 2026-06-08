@@ -48,9 +48,7 @@ static int console_getline(char *buf, int len) {
         }
         if (ch < 0)
             return ch;
-        if (ch == '\r')
-            continue;
-        if (ch == '\n') {
+        if (ch == '\r' || ch == '\n') {
             buf[pos] = '\0';
             echo[0] = '\n';
             echo[1] = '\0';
@@ -113,6 +111,7 @@ static void cmd_help(void) {
     console_puts("  /fleet status      fleet telemetry snapshot\n");
     console_puts("  /fleet push        export fleet.json cache\n");
     console_puts("  /fleet probe <url> probe collector endpoint\n");
+    console_puts("  /fleet ingest [url] POST fleet.json to collector\n");
     console_puts("  /policy status     active deny rules\n");
     console_puts("  /policy load [path] load policy manifest\n");
     console_puts("  /policy deny <id>  deny tool by id\n");
@@ -121,6 +120,7 @@ static void cmd_help(void) {
     console_puts("  /remote status     remote console state\n");
     console_puts("  /remote enable     enable remote console\n");
     console_puts("  /remote disable    disable remote console\n");
+    console_puts("  /remote ping       liveness check (requires enable)\n");
     console_puts("  /mesh status       mesh beacon state\n");
     console_puts("  /mesh beacon       emit UDP beacon (stub)\n");
     console_puts("  /mesh probe <svc>  probe local service\n");
@@ -134,7 +134,18 @@ static void cmd_help(void) {
     console_puts("  /quit namespace    exit namespace demo\n");
     console_puts("  /quit quota        exit quota demo\n");
     console_puts("  /quit beta         exit v0.1-beta GA demo\n");
+    console_puts("  /quit 0.3.0        exit 0.3.0 demo\n");
     console_puts("  /quit box          exit headless box demo\n");
+}
+
+static void console_boot_barrier(void) {
+    int i;
+
+    /* Let display/input finish boot logs before drawing the REPL prompt. */
+    for (i = 0; i < 512; i++)
+        agent_yield();
+    console_puts("\n");
+    console_prompt();
 }
 
 static void cmd_agents(void) {
@@ -702,7 +713,26 @@ static int cmd_fleet(const char *args) {
         }
         return 0;
     }
-    console_puts("usage: /fleet status|push|probe <url>\n");
+    if (starts_with(args, "ingest")) {
+        const char *walk = trim_line((char *)(args + 6));
+        if (!walk[0]) {
+            rc = (int)sys_agent_tool(TOOL_FLEET, FLEET_CMD_INGEST, 0, 0);
+        } else {
+            int i = 0;
+            while (walk[i] && i < (int)sizeof(url) - 1) {
+                url[i] = walk[i];
+                i++;
+            }
+            url[i] = '\0';
+            rc = (int)sys_agent_tool(TOOL_FLEET, FLEET_CMD_INGEST, (long)url, 0);
+        }
+        if (rc < 0) {
+            console_puts("fleet ingest failed\n");
+            return -1;
+        }
+        return 0;
+    }
+    console_puts("usage: /fleet status|push|probe <url>|ingest [url]\n");
     return -1;
 }
 
@@ -810,7 +840,15 @@ static int cmd_remote(const char *args) {
         }
         return 0;
     }
-    console_puts("usage: /remote status|enable|disable\n");
+    if (str_eq(args, "ping")) {
+        rc = (int)sys_agent_tool(TOOL_REMOTE, REMOTE_CMD_PING, 0, 0);
+        if (rc < 0) {
+            console_puts("remote ping failed\n");
+            return -1;
+        }
+        return 0;
+    }
+    console_puts("usage: /remote status|enable|disable|ping\n");
     return -1;
 }
 
@@ -939,6 +977,12 @@ static int handle_line(char *line) {
                              (long)"v0.2-rc demo complete", 0);
         agent_exit(0);
     }
+    if (str_eq(line, "/quit 0.3.0")) {
+        agent_log_str("[console] quit 0.3.0\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"0.3.0 demo complete", 0);
+        agent_exit(0);
+    }
     if (str_eq(line, "/quit box")) {
         agent_log_str("[console] quit box\n");
         agent_send_msg(1, MSG_RESULT, "box demo complete");
@@ -1032,7 +1076,7 @@ void console_agent_main(void) {
     agent_log_int(CONSOLE_AGENT_ID);
     agent_log_str("\n");
 
-    console_prompt();
+    console_boot_barrier();
     for (;;) {
         n = console_getline(line, (int)sizeof(line));
         if (n < 0)

@@ -281,8 +281,9 @@ OTA_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o 
         run-load check-load load worker.agent \
         platform check-platform run-x86-smoke check-wrap-x86 check-console-x86 \
         check-console-x86-tenant check-console-x86-audit check-console-x86-namespace \
-        check-console-x86-all check-v0.1-beta check-v0.2-rc check-console-v7 check-fleet-x86 \
-        run-x86-v01-beta run-x86-v02-rc \
+        check-console-x86-all check-v0.1-beta check-v0.2-rc check-0.1.0 check-0.2.0 check-0.3.0 \
+        check-console-v7 check-fleet-x86 \
+        run-x86-v01-beta run-x86-v02-rc run-x86-0.3.0 \
         run-smp check-smp smp \
         run-ota check-ota ota \
         pipeline llm harness tools v1
@@ -1123,6 +1124,10 @@ X86_V02_RC_KERN_OBJS := $(subst kernel/platform_x86_v01.o,kernel/platform_x86_v0
 X86_V02_RC_OBJS := $(X86_V02_RC_KERN_OBJS) kernel/kernel_v02_rc_x86.o \
                  user/demo_v02_rc_x86.o $(X86_CONSOLE_SVC_OBJS)
 
+X86_V030_KERN_OBJS := $(subst kernel/platform_x86_v02.o,kernel/platform_x86_v03.o,$(X86_V02_RC_KERN_OBJS))
+X86_V030_OBJS := $(X86_V030_KERN_OBJS) kernel/kernel_v030_x86.o \
+                 user/demo_v030_x86.o $(X86_CONSOLE_SVC_OBJS)
+
 X86_CONSOLE_OBJS := $(X86_CONSOLE_KERN_OBJS) kernel/kernel_console_x86_quota.o \
                  user/demo_console_quota_x86.o $(X86_CONSOLE_SVC_OBJS)
 
@@ -1161,6 +1166,9 @@ kernel-x86-v01-beta.elf: $(X86_V01_BETA_OBJS) linker_x86.ld
 kernel-x86-v02-rc.elf: $(X86_V02_RC_OBJS) linker_x86.ld
 	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V02_RC_OBJS)
 
+kernel-x86-0.3.0.elf: $(X86_V030_OBJS) linker_x86.ld
+	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V030_OBJS)
+
 kernel-x86-smoke.elf: $(X86_SMOKE_OBJS) linker_x86.ld
 	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_SMOKE_OBJS)
 
@@ -1193,6 +1201,9 @@ user/demo_v01_beta_x86.o: user/demo_v01_beta.c user/libagent.h include/agentos.h
 
 user/demo_v02_rc_x86.o: user/demo_v02_rc.c user/libagent.h include/agentos.h
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v02_rc.c
+
+user/demo_v030_x86.o: user/demo_v030.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v030.c
 
 user/agent_svc_x86.o: user/agent_svc.c user/libagent.h include/agentos.h
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/agent_svc.c
@@ -1238,11 +1249,17 @@ kernel/kernel_v01_beta_x86.o: kernel/kernel_v01_beta_x86.c
 kernel/kernel_v02_rc_x86.o: kernel/kernel_v02_rc_x86.c
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
 
+kernel/kernel_v030_x86.o: kernel/kernel_v030_x86.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
+
 kernel/platform_x86_v01.o: kernel/platform.c include/platform.h
-	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"v0.1-beta\" -c -o $@ $<
+	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"0.1.0\" -c -o $@ $<
 
 kernel/platform_x86_v02.o: kernel/platform.c include/platform.h
-	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"v0.2-rc\" -c -o $@ $<
+	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"0.2.0\" -c -o $@ $<
+
+kernel/platform_x86_v03.o: kernel/platform.c include/platform.h
+	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"0.3.0\" -c -o $@ $<
 
 kernel/persist_x86.o: kernel/persist.c
 	$(X86_CC) $(X86_CFLAGS) -DENABLE_PERSIST -c -o $@ $<
@@ -1289,6 +1306,14 @@ check-v0.2-rc:
 	chmod +x scripts/check-v0.2-rc.sh
 	./scripts/check-v0.2-rc.sh
 
+check-0.1.0: check-v0.1-beta
+
+check-0.2.0: check-v0.2-rc
+
+check-0.3.0:
+	chmod +x scripts/check-0.3.0.sh
+	./scripts/check-0.3.0.sh
+
 check-fleet-x86:
 	chmod +x scripts/check-fleet-x86.sh
 	./scripts/check-fleet-x86.sh
@@ -1298,6 +1323,9 @@ run-x86-v01-beta: kernel-x86-v01-beta.elf
 
 run-x86-v02-rc: kernel-x86-v02-rc.elf
 	qemu-system-x86_64 -machine pc -nographic -kernel kernel-x86-v02-rc.elf -display none
+
+run-x86-0.3.0: kernel-x86-0.3.0.elf
+	qemu-system-x86_64 -machine pc -nographic -kernel kernel-x86-0.3.0.elf -display none
 
 run-console-v7: kernel-console-v7.elf
 	$(QEMU) -machine virt -nographic -bios default -global virtio-mmio.force-legacy=false \

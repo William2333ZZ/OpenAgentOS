@@ -11,7 +11,7 @@
 | 维度 | 命名 | 示例 | 用途 |
 |------|------|------|------|
 | **工程迭代** | v6.x / v7.x / v8.x | v7.0 Fleet | 内核模块、Tool ID、设计文档 |
-| **产品发布** | v0.x-beta / v0.x-rc / **v1.0** | v0.1-beta → v0.2-rc → v1.0 | GitHub Release、对外宣传、ABI 冻结 |
+| **产品发布** | SemVer `MAJOR.MINOR.PATCH` | `0.1.0` → `0.2.0` → `0.3.0` → **1.0.0** | GitHub Release、对外宣传、ABI 冻结 |
 
 ```mermaid
 flowchart LR
@@ -24,10 +24,10 @@ flowchart LR
     v80[v8 安全/BSP]
   end
   subgraph prod [产品线]
-    b01[v0.1-beta ✅]
-    rc02[v0.2-rc]
-    rc03[v0.3-rc]
-    ga10[v1.0 GA]
+    b01[0.1.0 ✅]
+    rc02[0.2.0 ✅]
+    rc03[0.3.0 ✅]
+    ga10[1.0.0 GA]
   end
   v65 --> b01
   v70 --> b01
@@ -42,18 +42,18 @@ flowchart LR
 
 ---
 
-## 2. 已交付：v0.1-beta（2026-06）
+## 2. 已交付：0.1.0（2026-06，原 v0.1-beta）
 
 | 项 | 状态 |
 |----|------|
 | 平台 | x86_64-pc QEMU 子 OS |
 | 能力 | v6 全家桶 + v7 Fleet/Policy/Remote/Mesh |
-| 验收 | `make check-v0.1-beta` |
+| 验收 | `make check-0.1.0`（别名 `check-v0.1-beta`） |
 | 许可 | Apache-2.0 · [GitHub](https://github.com/William2333ZZ/OpenAgentOS) |
 
 ---
 
-## 3. 当前迭代：v0.2-rc（目标 2026-07）
+## 3. 已交付：0.2.0（2026-07，原 v0.2-rc）
 
 **主题**：双平台 v7 + 策略可加载 + 分项验收
 
@@ -61,21 +61,34 @@ flowchart LR
 |------|------|------|
 | v7 RISC-V | `kernel-console-v7.elf` | `make check-console-v7` |
 | x86 Fleet 子集 | 独立脚本 | `make check-fleet-x86` |
-| Policy 文件加载 | 种子 `/sys/policy/active` + `/policy load` | `make check-v0.2-rc` |
+| Policy 文件加载 | 种子 `/sys/policy/active` + `/policy load` | `make check-0.2.0` |
 | Fleet Collector | `tools/fleet-collector.py` | 文档 + 手动 POST |
-| 产品内核 | `kernel-x86-v02-rc.elf` | `make check-v0.2-rc` |
-
-**非目标（v0.2 不做）**：真板 BSP、VirtIO-net 生产栈、Mesh 跨 QEMU。
+| 产品内核 | `kernel-x86-v02-rc.elf` | `make check-0.2.0` |
 
 ---
 
-## 4. v0.3-rc → v1.0 GA 路径
+## 4. 已交付：0.3.0（2026-06）
+
+**主题**：Fleet HTTP ingest + Remote ping（HTTP_FAUX，VirtIO-net 前奏）
+
+| 子项 | 交付 | 验收 |
+|------|------|------|
+| Fleet ingest | `/fleet ingest [url]`、`FLEET_CMD_INGEST` | `make check-0.3.0` |
+| Remote ping | `/remote ping`、`REMOTE_CMD_PING` | `make check-0.3.0` |
+| semver Banner | `0.1.0` / `0.2.0` / `0.3.0` | 见 [VERSIONING.md](./VERSIONING.md) |
+| 产品内核 | `kernel-x86-0.3.0.elf` | `make check-0.3.0` |
+
+**非目标（0.3.0 不做）**：VirtIO-net 生产栈、Remote TCP 真链路（留待 0.4+）。
+
+---
+
+## 5. 0.4+ → 1.0.0 GA 路径
 
 | 版本 | 时间（基准） | 主题 | 退出标准 |
 |------|-------------|------|----------|
-| **v0.3-rc** | 2026 Q4 | VirtIO-net Fleet push + Remote TCP 真链路 | `check-remote-console` 绿 |
-| **v0.9-rc** | 2027 Q2 | OTA 签名强制 + 渗透测试修复 | 安全审计清单 |
-| **v1.0 GA** | 2027 Q3 | stable/LTS 渠道、集成商文档、≥1 真板 smoke | 见 [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) §6.2 |
+| **0.4.0** | 2026 Q4 | VirtIO-net Fleet push + Remote TCP 真链路 | `check-remote-console` 绿 |
+| **0.9.0** | 2027 Q2 | OTA 签名强制 + 渗透测试修复 | 安全审计清单 |
+| **1.0.0 GA** | 2027 Q3 | stable/LTS 渠道、集成商文档、≥1 真板 smoke | 见 [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) §6.2 |
 
 ### v8 工程线（支撑 v1.0）
 
@@ -85,26 +98,27 @@ flowchart LR
 
 ---
 
-## 5. 能力矩阵（规划）
+## 6. 能力矩阵（规划）
 
-| 能力 | v0.1-beta | v0.2-rc | v0.3-rc | v1.0 |
+| 能力 | 0.1.0 | 0.2.0 | 0.3.0 | 1.0.0 |
 |------|-----------|---------|---------|------|
 | x86 Console 子 OS | ✅ | ✅ | ✅ | ✅ |
 | RISC-V v7 栈 | stub | ✅ | ✅ | ✅ |
 | Policy 文件 load | 内存 deny | ✅ ramfs | ✅ GitOps 文档 | ✅ |
-| Fleet HTTP push | stub | collector | net 栈 | 生产 TLS |
-| Remote Console | host stub | stub | TCP 真链路 | token+审计 |
+| Fleet HTTP push | stub | collector | ingest (faux) | 生产 TLS |
+| Remote Console | host stub | stub | ping (faux) | token+审计 |
 | Mesh 跨设备 | beacon | beacon | host relay | 可选 |
 | 真板 | — | — | smoke | 必选 |
 
 ---
 
-## 6. 验收命令速查
+## 7. 验收命令速查
 
 ```bash
-# 产品 Release _gate
-make check-v0.1-beta      # x86 全栈 GA
-make check-v0.2-rc        # v0.2 产品候选
+# 产品 Release gate（SemVer）
+make check-0.1.0          # 别名 check-v0.1-beta
+make check-0.2.0          # 别名 check-v0.2-rc
+make check-0.3.0          # fleet ingest + remote ping
 
 # v7 分项
 make check-console-v7     # RISC-V v7
@@ -116,7 +130,7 @@ make check-console-x86-all check-platform
 
 ---
 
-## 7. ABI 与破坏性变更
+## 8. ABI 与破坏性变更
 
 - **v0.x**：Tool 22–25 已分配，仅追加不修改语义
 - **v1.0**：syscall + Tool 表冻结声明；breaking 仅 major
@@ -124,7 +138,7 @@ make check-console-x86-all check-platform
 
 ---
 
-## 8. 与个人品牌的关系
+## 9. 与个人品牌的关系
 
 产品路线图由 **OpenAgentOS** 项目承载；个人品牌负责叙事、信任与社区。详见 **[BRAND.md](./BRAND.md)**。
 

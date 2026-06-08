@@ -1,4 +1,5 @@
 #include "../include/platform.h"
+#include "../include/version.h"
 #include "uart.h"
 #include "printf.h"
 
@@ -49,7 +50,7 @@ void boot_banner(const char *demo_title) {
     const struct agentos_platform *p = platform_get();
 
 #ifndef AGENTOS_VERSION
-#define AGENTOS_VERSION "v4.0"
+#define AGENTOS_VERSION OPENAGENTOS_VERSION
 #endif
     uart_puts("\n");
     uart_puts("========================================\n");

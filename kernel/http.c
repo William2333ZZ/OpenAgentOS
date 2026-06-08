@@ -28,7 +28,9 @@ static int http_faux(const char *url, char *buf, int buflen) {
 
     if (url_contains(url, "reject"))
         return EIO;
-    if (url_contains(url, "agentos") || url_contains(url, "stub/"))
+    if (url_contains(url, "ingest"))
+        body = "200:ingest-ok";
+    else if (url_contains(url, "agentos") || url_contains(url, "stub/"))
         body = "200:agentos-net-stub";
     else
         body = "stub:200 ok";

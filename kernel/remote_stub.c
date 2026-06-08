@@ -16,3 +16,8 @@ int remote_disable(struct agent *a) {
     (void)a;
     return 0;
 }
+
+int remote_ping(struct agent *a) {
+    (void)a;
+    return 0;
+}

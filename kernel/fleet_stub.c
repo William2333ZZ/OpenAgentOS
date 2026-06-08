@@ -17,3 +17,9 @@ int fleet_probe(struct agent *a, const char *url) {
     (void)url;
     return 0;
 }
+
+int fleet_ingest(struct agent *a, const char *url) {
+    (void)a;
+    (void)url;
+    return 0;
+}

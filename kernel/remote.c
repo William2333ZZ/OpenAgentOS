@@ -33,3 +33,13 @@ int remote_disable(struct agent *a) {
     kprintf("[remote] disable agent=%d\n", a ? a->id : -1);
     return 0;
 }
+
+int remote_ping(struct agent *a) {
+    if (!remote_enabled) {
+        kprintf("[remote] ping denied agent=%d (disabled)\n", a ? a->id : -1);
+        return EPERM;
+    }
+    kprintf("[remote] ping ok agent=%d port=%d token=%s\n",
+            a ? a->id : -1, REMOTE_DEFAULT_PORT, REMOTE_DEFAULT_TOKEN);
+    return 0;
+}
