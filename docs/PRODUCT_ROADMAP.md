@@ -131,7 +131,7 @@ flowchart LR
 
 ---
 
-## 7. 能力矩阵（规划）
+## 8. 能力矩阵（规划）
 
 | 能力 | 0.1.0 | 0.2.0 | 0.3.0 | 0.4.0 | 0.5.0 | 1.0.0 |
 |------|-----------|---------|---------|---------|---------|------|
@@ -154,6 +154,7 @@ make check-0.1.0          # 别名 check-v0.1-beta
 make check-0.2.0          # 别名 check-v0.2-rc
 make check-0.3.0          # fleet ingest + remote ping
 make check-0.4.0          # 别名 check-remote-console：RISC-V virtio-net + TCP (~13s)
+make check-0.5.0          # 别名 check-llm-console：DeepSeek /llm + 0.4.0 栈 (~20s)
 
 # v7 分项
 make check-console-v7     # RISC-V v7
