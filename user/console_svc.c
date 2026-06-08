@@ -81,7 +81,7 @@ static void cmd_help(void) {
     console_puts("OpenAgentOS console commands:\n");
     console_puts("  /help              list commands\n");
     console_puts("  /echo <text>       display via display-agent\n");
-    console_puts("  /llm <prompt>      ask router (faux backend)\n");
+    console_puts("  /llm <prompt>      ask DeepSeek via router (faux if offline)\n");
     console_puts("  /agents            list service agent ids\n");
     console_puts("  /session tail      print session tail\n");
     console_puts("  /session append T  append session line\n");
@@ -137,6 +137,7 @@ static void cmd_help(void) {
     console_puts("  /quit beta         exit v0.1-beta GA demo\n");
     console_puts("  /quit 0.3.0        exit 0.3.0 demo\n");
     console_puts("  /quit 0.4.0        exit 0.4.0 demo\n");
+    console_puts("  /quit 0.5.0        exit 0.5.0 demo\n");
     console_puts("  /quit box          exit headless box demo\n");
 }
 
@@ -176,7 +177,7 @@ static int cmd_llm(const char *args) {
         console_puts("usage: /llm <prompt>\n");
         return -1;
     }
-    n = agent_svc_llm(args, answer, (int)sizeof(answer), "faux");
+    n = agent_svc_llm(args, answer, (int)sizeof(answer), "deepseek");
     if (n < 0) {
         console_puts("llm failed\n");
         return -1;
@@ -997,6 +998,12 @@ static int handle_line(char *line) {
         agent_log_str("[console] quit 0.4.0\n");
         (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
                              (long)"0.4.0 demo complete", 0);
+        agent_exit(0);
+    }
+    if (str_eq(line, "/quit 0.5.0")) {
+        agent_log_str("[console] quit 0.5.0\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"0.5.0 demo complete", 0);
         agent_exit(0);
     }
     if (str_eq(line, "/quit box")) {

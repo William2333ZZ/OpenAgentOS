@@ -28,6 +28,7 @@ flowchart LR
     rc02[0.2.0 ✅]
     rc03[0.3.0 ✅]
     rc04[0.4.0 ✅]
+    rc05[0.5.0 ✅]
     ga10[1.0.0 GA]
   end
   v65 --> b01
@@ -36,7 +37,7 @@ flowchart LR
   v72 --> rc02
   v73 --> rc02
   v80 --> ga10
-  rc02 --> rc03 --> rc04 --> ga10
+  rc02 --> rc03 --> rc04 --> rc05 --> ga10
 ```
 
 **原则**：工程可以并行；产品 Release 只打包「可验收、可演示、可写文档」的组合。
@@ -99,11 +100,26 @@ flowchart LR
 
 ---
 
-## 6. 0.5+ → 1.0.0 GA 路径
+## 6. 已交付：0.5.0（2026-06）
+
+**主题**：Console `/llm` DeepSeek（VirtIO-net + router + mbedTLS）
+
+| 子项 | 交付 | 验收 |
+|------|------|------|
+| model-router | `router_svc` + `CAP_LLM` | `make check-0.5.0` |
+| DeepSeek | `llm_deepseek` + host gw 回退 | `make check-0.5.0` |
+| Console `/llm` | backend=deepseek，无 key 时 faux | `make check-0.5.0` |
+| 产品内核 | `kernel-console-v050.elf` | `make check-0.5.0`（别名 `check-llm-console`） |
+
+**继承 0.4.0**：fleet ingest、remote TCP 仍包含在同一验收脚本中。
+
+---
+
+## 7. 0.6+ → 1.0.0 GA 路径
 
 | 版本 | 时间（基准） | 主题 | 退出标准 |
 |------|-------------|------|----------|
-| **0.5.0** | 2026 Q4 | x86 VirtIO-net PCI 与 RISC-V  parity | `check-x86-0.4.0` 绿 |
+| **0.6.0** | 2026 Q4 | x86 VirtIO-net PCI 与 RISC-V parity | `check-x86-0.4.0` 绿 |
 | **0.9.0** | 2027 Q2 | OTA 签名强制 + 渗透测试修复 | 安全审计清单 |
 | **1.0.0 GA** | 2027 Q3 | stable/LTS 渠道、集成商文档、≥1 真板 smoke | 见 [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) §6.2 |
 
@@ -117,14 +133,15 @@ flowchart LR
 
 ## 7. 能力矩阵（规划）
 
-| 能力 | 0.1.0 | 0.2.0 | 0.3.0 | 0.4.0 | 1.0.0 |
-|------|-----------|---------|---------|---------|------|
-| x86 Console 子 OS | ✅ | ✅ | ✅ | ✅ exp | ✅ |
-| RISC-V v7 栈 | stub | ✅ | ✅ | ✅ | ✅ |
-| Policy 文件 load | 内存 deny | ✅ ramfs | ✅ GitOps 文档 | ✅ | ✅ |
-| Fleet HTTP push | stub | collector | ingest (faux) | ingest (net) | 生产 TLS |
-| Remote Console | host stub | stub | ping (faux) | TCP connect | token+审计 |
-| Mesh 跨设备 | beacon | beacon | host relay | host relay | 可选 |
+| 能力 | 0.1.0 | 0.2.0 | 0.3.0 | 0.4.0 | 0.5.0 | 1.0.0 |
+|------|-----------|---------|---------|---------|---------|------|
+| x86 Console 子 OS | ✅ | ✅ | ✅ | ✅ exp | ✅ exp | ✅ |
+| RISC-V v7 栈 | stub | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Policy 文件 load | 内存 deny | ✅ ramfs | ✅ | ✅ | ✅ | ✅ |
+| Fleet HTTP push | stub | collector | ingest (faux) | ingest (net) | ingest (net) | 生产 TLS |
+| Remote Console | host stub | stub | ping (faux) | TCP connect | TCP connect | token+审计 |
+| Console /llm DeepSeek | faux | faux | faux | faux | ✅ net | ✅ |
+| Mesh 跨设备 | beacon | beacon | host relay | host relay | host relay | 可选 |
 | 真板 | — | — | smoke | smoke | 必选 |
 
 ---

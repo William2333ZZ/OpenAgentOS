@@ -209,6 +209,11 @@ CONSOLE_V7_BASE_OBJS := $(filter-out kernel/tenant_stub.o,$(V7_RV_PLATFORM_OBJS)
 CONSOLE_V040_RV_OBJS := $(filter-out kernel/kernel_console_v7.o user/demo_console_v7.o kernel/http-faux.o kernel/netstack_stub.o,$(CONSOLE_V7_BASE_OBJS)) \
            kernel/http.o kernel/netstack.o kernel/virtio_net.o kernel/kernel_v040_riscv.o user/demo_v040.o
 
+CONSOLE_V050_RV_OBJS := $(filter-out kernel/kernel_v040_riscv.o user/demo_v040.o kernel/llm_stub.o,$(CONSOLE_V040_RV_OBJS)) \
+           kernel/llm_net.o kernel/llm_deepseek.o kernel/tls_client.o kernel/mbedtls_port.o kernel/string.o \
+           $(MBEDTLS_OBJS) \
+           kernel/kernel_v050_riscv.o user/demo_v050.o user/router_svc.o
+
 DESKTOP_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o kernel/printf.o \
            kernel/halt.o kernel/mem.o kernel/ipc.o kernel/uaccess.o kernel/ramfs.o \
            kernel/tool.o kernel/audit.o kernel/namespace.o kernel/quota.o kernel/http-faux.o kernel/agent.o kernel/sched.o kernel/timer.o \
@@ -286,9 +291,9 @@ OTA_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o 
         platform check-platform run-x86-smoke check-wrap-x86 check-console-x86 \
         check-console-x86-tenant check-console-x86-audit check-console-x86-namespace \
         check-console-x86-all check-v0.1-beta check-v0.2-rc check-0.1.0 check-0.2.0 \
-        check-0.3.0 check-0.4.0 check-remote-console \
+        check-0.3.0 check-0.4.0 check-0.5.0 check-remote-console check-llm-console \
         check-console-v7 check-fleet-x86 \
-        run-x86-v01-beta run-x86-v02-rc run-x86-0.3.0 run-x86-0.4.0 run-riscv-0.4.0 \
+        run-x86-v01-beta run-x86-v02-rc run-x86-0.3.0 run-x86-0.4.0 run-riscv-0.4.0 run-riscv-0.5.0 \
         run-smp check-smp smp \
         run-ota check-ota ota \
         pipeline llm harness tools v1
@@ -422,6 +427,9 @@ kernel-console-v7.elf: $(CONSOLE_V7_BASE_OBJS) linker.ld
 
 kernel-console-v040.elf: $(CONSOLE_V040_RV_OBJS) linker.ld
 	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V040_RV_OBJS)
+
+kernel-console-v050.elf: generated/deepseek_key.h generated/deepseek_host.h $(CONSOLE_V050_RV_OBJS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V050_RV_OBJS)
 
 kernel-desktop.elf: $(DESKTOP_BASE_OBJS) linker.ld user/worker_elf.inc
 	$(CC) $(LDFLAGS) -o $@ $(DESKTOP_BASE_OBJS)
@@ -1274,6 +1282,12 @@ kernel/kernel_v030_x86.o: kernel/kernel_v030_x86.c
 kernel/kernel_v040_x86.o: kernel/kernel_v040_x86.c
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
 
+kernel/kernel_v050_riscv.o: kernel/kernel_v050_riscv.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+user/demo_v050.o: user/demo_v050.c user/libagent.h include/agentos.h
+	$(CC) $(CFLAGS) -c -o $@ user/demo_v050.c
+
 kernel/platform_x86_v01.o: kernel/platform.c include/platform.h
 	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"0.1.0\" -c -o $@ $<
 
@@ -1349,7 +1363,13 @@ check-0.4.0:
 	chmod +x scripts/check-0.4.0.sh
 	./scripts/check-0.4.0.sh
 
+check-0.5.0:
+	chmod +x scripts/check-0.5.0.sh
+	./scripts/check-0.5.0.sh
+
 check-remote-console: check-0.4.0
+
+check-llm-console: check-0.5.0
 
 check-fleet-x86:
 	chmod +x scripts/check-fleet-x86.sh
@@ -1372,6 +1392,11 @@ run-riscv-0.4.0: kernel-console-v040.elf
 	$(QEMU) -machine virt -nographic -bios default -global virtio-mmio.force-legacy=false \
 	  -netdev user,id=net0 -device virtio-net-device,netdev=net0 \
 	  -kernel kernel-console-v040.elf
+
+run-riscv-0.5.0: kernel-console-v050.elf
+	$(QEMU) -machine virt -nographic -bios default -global virtio-mmio.force-legacy=false \
+	  -netdev user,id=net0 -device virtio-net-device,netdev=net0 \
+	  -kernel kernel-console-v050.elf
 
 run-console-v7: kernel-console-v7.elf
 	$(QEMU) -machine virt -nographic -bios default -global virtio-mmio.force-legacy=false \
