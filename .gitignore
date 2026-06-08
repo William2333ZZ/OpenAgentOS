@@ -1,0 +1,25 @@
+# Secrets and generated keys
+.env
+generated/
+
+# Build artifacts
+*.elf
+*.o
+*.a
+*.d
+*.bin
+*.img
+
+# Local reference clone (not part of OpenAgentOS)
+pi/
+
+# OS / editor
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
+
+# Test logs
+/tmp/
+*.log

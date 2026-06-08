@@ -1,0 +1,19 @@
+OpenAgentOS
+Copyright 2026 OpenAgentOS Contributors
+
+This product includes software developed by third parties:
+
+================================================================================
+Mbed TLS
+================================================================================
+Location: third_party/mbedtls/
+License: Apache-2.0 OR GPL-2.0-or-later (SPDX)
+Copyright: The Mbed TLS Contributors
+See: third_party/mbedtls/LICENSE
+
+================================================================================
+Acknowledgements
+================================================================================
+OpenAgentOS Agent IPC design is inspired by the pi Agent Harness project:
+  https://github.com/earendil-works/pi (MIT License)
+The pi project is NOT bundled in this repository.

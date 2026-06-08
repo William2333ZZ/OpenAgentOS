@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  check-v01-beta:
+    name: x86 v0.1-beta acceptance
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          brew install i686-elf-gcc riscv64-elf-gcc qemu ripgrep
+
+      - name: Run check-v0.1-beta
+        run: make check-v0.1-beta
+
+      - name: Run check-console-x86
+        run: make check-console-x86
