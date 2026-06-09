@@ -81,7 +81,7 @@ static void cmd_help(void) {
     console_puts("OpenAgentOS console commands:\n");
     console_puts("  /help              list commands\n");
     console_puts("  /echo <text>       display via display-agent\n");
-    console_puts("  /llm <prompt>      ask DeepSeek via router (faux if offline)\n");
+    console_puts("  /llm <prompt>      DeepSeek API direct (HTTPS, no host bridge)\n");
     console_puts("  /agents            list service agent ids\n");
     console_puts("  /session tail      print session tail\n");
     console_puts("  /session append T  append session line\n");
@@ -117,6 +117,9 @@ static void cmd_help(void) {
     console_puts("  /policy deny <id>  deny tool by id\n");
     console_puts("  /policy allow <id> allow tool by id\n");
     console_puts("  /policy probe <id> probe tool policy\n");
+    console_puts("  /policy net allow H:P  network egress allowlist\n");
+    console_puts("  /policy net restrict enable whitelist mode\n");
+    console_puts("  /sandbox status      cap/ns/quota/policy summary\n");
     console_puts("  /remote status     remote console state\n");
     console_puts("  /remote enable     enable remote console\n");
     console_puts("  /remote disable    disable remote console\n");
@@ -138,6 +141,7 @@ static void cmd_help(void) {
     console_puts("  /quit 0.3.0        exit 0.3.0 demo\n");
     console_puts("  /quit 0.4.0        exit 0.4.0 demo\n");
     console_puts("  /quit 0.5.0        exit 0.5.0 demo\n");
+    console_puts("  /quit 0.6.0        exit 0.6.0 demo\n");
     console_puts("  /quit box          exit headless box demo\n");
 }
 
@@ -170,14 +174,25 @@ static int cmd_echo(const char *args) {
 
 static int cmd_llm(const char *args) {
     char answer[LLM_MAX_RESPONSE];
+    char backend[32] = "deepseek";
     int n;
 
     args = trim_line((char *)args);
+    if (starts_with(args, "--backend")) {
+        const char *walk = trim_line((char *)(args + 9));
+        int i = 0;
+        while (walk[i] && walk[i] != ' ' && i < (int)sizeof(backend) - 1) {
+            backend[i] = walk[i];
+            i++;
+        }
+        backend[i] = '\0';
+        args = trim_line((char *)(walk + i));
+    }
     if (!args[0]) {
-        console_puts("usage: /llm <prompt>\n");
+        console_puts("usage: /llm [--backend faux|deepseek] <prompt>\n");
         return -1;
     }
-    n = agent_svc_llm(args, answer, (int)sizeof(answer), "deepseek");
+    n = agent_svc_llm(args, answer, (int)sizeof(answer), backend);
     if (n < 0) {
         console_puts("llm failed\n");
         return -1;
@@ -739,6 +754,16 @@ static int cmd_fleet(const char *args) {
     return -1;
 }
 
+static int cmd_sandbox(const char *args) {
+    (void)args;
+    console_puts("[sandbox] agent console cap-ns-quota-policy-net summary\n");
+    (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_STATUS, 0, 0);
+    (void)sys_agent_tool(TOOL_POLICY, POLICY_CMD_STATUS, 0, 0);
+    (void)sys_agent_tool(TOOL_POLICY, POLICY_CMD_NET_STATUS, 0, 0);
+    (void)sys_agent_tool(TOOL_NAMESPACE, NS_CMD_STATUS, 0, 0);
+    return 0;
+}
+
 static int cmd_policy(const char *args) {
     char path[128];
     int tool_id;
@@ -792,6 +817,51 @@ static int cmd_policy(const char *args) {
         rc = (int)sys_agent_tool(TOOL_POLICY, POLICY_CMD_ALLOW, tool_id, 0);
         if (rc < 0) {
             console_puts("policy allow failed\n");
+            return -1;
+        }
+        return 0;
+    }
+    if (starts_with(args, "net allow")) {
+        char host[64];
+        int port = 443;
+        const char *walk = trim_line((char *)(args + 9));
+        int i = 0;
+        while (walk[i] && walk[i] != ':' && walk[i] != ' ' && i < (int)sizeof(host) - 1) {
+            host[i] = walk[i];
+            i++;
+        }
+        host[i] = '\0';
+        if (walk[i] == ':') {
+            int j = i + 1;
+            port = 0;
+            while (walk[j] >= '0' && walk[j] <= '9') {
+                port = port * 10 + (walk[j] - '0');
+                j++;
+            }
+        }
+        if (!host[0]) {
+            console_puts("usage: /policy net allow <host>[:port]\n");
+            return -1;
+        }
+        rc = (int)sys_agent_tool(TOOL_POLICY, POLICY_CMD_NET_ALLOW, (long)host, port);
+        if (rc < 0) {
+            console_puts("policy net allow failed\n");
+            return -1;
+        }
+        return 0;
+    }
+    if (str_eq(args, "net restrict")) {
+        rc = (int)sys_agent_tool(TOOL_POLICY, POLICY_CMD_NET_RESTRICT, 1, 0);
+        if (rc < 0) {
+            console_puts("policy net restrict failed\n");
+            return -1;
+        }
+        return 0;
+    }
+    if (str_eq(args, "net status")) {
+        rc = (int)sys_agent_tool(TOOL_POLICY, POLICY_CMD_NET_STATUS, 0, 0);
+        if (rc < 0) {
+            console_puts("policy net status failed\n");
             return -1;
         }
         return 0;
@@ -1006,6 +1076,48 @@ static int handle_line(char *line) {
                              (long)"0.5.0 demo complete", 0);
         agent_exit(0);
     }
+    if (str_eq(line, "/quit 0.6.0")) {
+        agent_log_str("[console] quit 0.6.0\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"0.6.0 demo complete", 0);
+        agent_exit(0);
+    }
+    if (str_eq(line, "/quit 0.6.1")) {
+        agent_log_str("[console] quit 0.6.1\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"0.6.1 demo complete", 0);
+        agent_exit(0);
+    }
+    if (str_eq(line, "/quit 0.6.2")) {
+        agent_log_str("[console] quit 0.6.2\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"0.6.2 demo complete", 0);
+        agent_exit(0);
+    }
+    if (str_eq(line, "/quit 0.6.3")) {
+        agent_log_str("[console] quit 0.6.3\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"0.6.3 demo complete", 0);
+        agent_exit(0);
+    }
+    if (str_eq(line, "/quit 0.6.4")) {
+        agent_log_str("[console] quit 0.6.4\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"0.6.4 demo complete", 0);
+        agent_exit(0);
+    }
+    if (str_eq(line, "/quit 0.7.0")) {
+        agent_log_str("[console] quit 0.7.0\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"0.7.0 demo complete", 0);
+        agent_exit(0);
+    }
+    if (str_eq(line, "/quit 1.0.0")) {
+        agent_log_str("[console] quit 1.0.0\n");
+        (void)sys_agent_tool(TOOL_QUOTA, QUOTA_CMD_NOTIFY,
+                             (long)"1.0.0 demo complete", 0);
+        agent_exit(0);
+    }
     if (str_eq(line, "/quit box")) {
         agent_log_str("[console] quit box\n");
         agent_send_msg(1, MSG_RESULT, "box demo complete");
@@ -1053,6 +1165,10 @@ static int handle_line(char *line) {
     if (starts_with(line, "/fleet")) {
         args = line + 6;
         return cmd_fleet(args);
+    }
+    if (starts_with(line, "/sandbox")) {
+        args = line + 8;
+        return cmd_sandbox(args);
     }
     if (starts_with(line, "/policy")) {
         args = line + 7;

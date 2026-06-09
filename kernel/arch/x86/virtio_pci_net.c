@@ -249,7 +249,6 @@ static int vq_setup(struct virtqueue *vq) {
     common_cfg->queue_used_hi = 0;
     common_cfg->queue_msix_vector = 0xffff;
     vq->notify_off = common_cfg->queue_notify_off;
-    common_cfg->queue_enable = 0;
     common_cfg->queue_enable = 1;
     return 0;
 }
@@ -292,8 +291,9 @@ static void net_read_mac(void) {
         net_mac[4] = 0x34;
         net_mac[5] = 0x56;
     }
-    kprintf("[virtio-net-pci] mac=%x:%x:%x:%x:%x:%x\n", net_mac[0], net_mac[1],
-            net_mac[2], net_mac[3], net_mac[4], net_mac[5]);
+    kprintf("[virtio-net-pci] mac=%02x:%02x:%02x:%02x:%02x:%02x\n",
+            (unsigned)net_mac[0], (unsigned)net_mac[1], (unsigned)net_mac[2],
+            (unsigned)net_mac[3], (unsigned)net_mac[4], (unsigned)net_mac[5]);
 }
 
 static void net_rx_refill(int slot) {

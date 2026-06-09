@@ -7,6 +7,8 @@
 #include "mbedtls/entropy.h"
 #include "mbedtls/error.h"
 #include "mbedtls/ssl.h"
+#include "mbedtls/ssl_ciphersuites.h"
+#include "mbedtls/ecp.h"
 
 #define DOH_IP   0x08080808UL /* 8.8.8.8 */
 #define DOH_HOST "dns.google"
@@ -113,6 +115,15 @@ static int parse_doh_a(const char *json, uint32_t *out_ip) {
 static int tls_setup_common(const char *sni_host) {
     int rc;
     char pers[] = "agentos-tls";
+    static const int ciphersuites[] = {
+        MBEDTLS_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+        MBEDTLS_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+        0,
+    };
+    static const mbedtls_ecp_group_id curves[] = {
+        MBEDTLS_ECP_DP_SECP256R1,
+        MBEDTLS_ECP_DP_NONE,
+    };
 
     mbedtls_ssl_init(&ssl);
     mbedtls_ssl_config_init(&conf);
@@ -132,6 +143,8 @@ static int tls_setup_common(const char *sni_host) {
 
     mbedtls_ssl_conf_authmode(&conf, MBEDTLS_SSL_VERIFY_NONE);
     mbedtls_ssl_conf_rng(&conf, mbedtls_ctr_drbg_random, &ctr_drbg);
+    mbedtls_ssl_conf_ciphersuites(&conf, ciphersuites);
+    mbedtls_ssl_conf_curves(&conf, curves);
 
     rc = mbedtls_ssl_setup(&ssl, &conf);
     if (rc != 0)
@@ -182,7 +195,11 @@ int tls_client_connect_ip(const char *sni_host, uint32_t ip, uint16_t port, int 
     return 0;
 
 fail:
-    kprintf("[tls] handshake failed rc=%d\n", rc);
+    {
+        char errbuf[80];
+        mbedtls_strerror(rc, errbuf, sizeof(errbuf));
+        kprintf("[tls] handshake failed rc=%d %s\n", rc, errbuf);
+    }
     tls_cleanup_fail();
     return EIO;
 }
@@ -415,20 +432,27 @@ static int https_post_send(const char *host, const char *path, const char *heade
     return rlen;
 }
 
-int net_https_post_ip(const char *host, uint32_t ip, const char *path, const char *headers,
-                      const char *body, char *resp, int resp_len, int timeout_ms) {
+int net_https_post_ip(const char *host, uint32_t ip, uint16_t port, const char *path,
+                      const char *headers, const char *body, char *resp, int resp_len,
+                      int timeout_ms) {
     if (!host || !path || !resp || resp_len <= 0 || ip == 0)
         return EINVAL;
-    if (tls_client_connect_ip(host, ip, 443, timeout_ms) != 0)
+    if (tls_client_connect_ip(host, ip, port, timeout_ms) != 0)
+        return EIO;
+    return https_post_send(host, path, headers, body, resp, resp_len, timeout_ms);
+}
+
+int net_https_post_port(const char *host, uint16_t port, const char *path,
+                        const char *headers, const char *body, char *resp, int resp_len,
+                        int timeout_ms) {
+    if (!host || !path || !resp || resp_len <= 0)
+        return EINVAL;
+    if (tls_client_connect(host, port, timeout_ms) != 0)
         return EIO;
     return https_post_send(host, path, headers, body, resp, resp_len, timeout_ms);
 }
 
 int net_https_post(const char *host, const char *path, const char *headers,
                    const char *body, char *resp, int resp_len, int timeout_ms) {
-    if (!host || !path || !resp || resp_len <= 0)
-        return EINVAL;
-    if (tls_client_connect(host, 443, timeout_ms) != 0)
-        return EIO;
-    return https_post_send(host, path, headers, body, resp, resp_len, timeout_ms);
+    return net_https_post_port(host, 443, path, headers, body, resp, resp_len, timeout_ms);
 }

@@ -1,15 +1,13 @@
 #include "llm_deepseek.h"
 #include "llm.h"
 #include "netstack.h"
+#include "policy.h"
 #include "printf.h"
 #include "../include/agentos.h"
 #include "../generated/deepseek_key.h"
-#include "../generated/deepseek_host.h"
 
 #define DEEPSEEK_HOST "api.deepseek.com"
 #define DEEPSEEK_PATH "/chat/completions"
-#define DEEPSEEK_GW_HOST "10.0.2.2"
-#define DEEPSEEK_GW_PORT 8443
 
 static int json_escape(const char *in, char *out, int outlen) {
     int pos = 0;
@@ -92,7 +90,8 @@ int llm_deepseek_query(const char *prompt, char *buf, int buflen, llm_delta_fn o
     int pos = 0;
     int i;
     int clen;
-    int blen;
+    int blen = -1;
+    uint32_t ip = 0;
 
     if (!prompt || !buf || buflen <= 0)
         return EINVAL;
@@ -102,6 +101,8 @@ int llm_deepseek_query(const char *prompt, char *buf, int buflen, llm_delta_fn o
         kprintf("[deepseek] no API key (set DEEPSEEK_API_KEY in .env)\n");
         return ENODEV;
     }
+    if (policy_net_allow(DEEPSEEK_HOST, 443) != 0)
+        return EPERM;
 
     json_escape(prompt, deepseek_esc, (int)sizeof(deepseek_esc));
     pos = 0;
@@ -130,18 +131,25 @@ int llm_deepseek_query(const char *prompt, char *buf, int buflen, llm_delta_fn o
         deepseek_auth[pos++] = DEEPSEEK_API_KEY[i];
     deepseek_auth[pos] = '\0';
 
-    kprintf("[deepseek] POST https://%s%s\n", DEEPSEEK_HOST, DEEPSEEK_PATH);
-    kprintf("[deepseek] resolve baked ip=%s\n", DEEPSEEK_API_IP_STR);
-    blen = net_https_post_ip(DEEPSEEK_HOST, DEEPSEEK_API_IP_HOST, DEEPSEEK_PATH, deepseek_auth,
-                             deepseek_body, deepseek_resp, (int)sizeof(deepseek_resp), 60000);
-    if (blen <= 0) {
-        kprintf("[deepseek] native TLS failed (%d), trying host gw http://%s:%u\n", blen,
-                DEEPSEEK_GW_HOST, (unsigned)DEEPSEEK_GW_PORT);
-        blen = net_http_post(DEEPSEEK_GW_HOST, DEEPSEEK_GW_PORT, DEEPSEEK_PATH, deepseek_auth,
-                             deepseek_body, deepseek_resp, (int)sizeof(deepseek_resp), 120000);
+    kprintf("[deepseek] POST https://%s%s (direct API, no host bridge)\n", DEEPSEEK_HOST,
+            DEEPSEEK_PATH);
+
+    if (net_dns_resolve_slirp(DEEPSEEK_HOST, &ip, 6000) == 0 && ip != 0) {
+        kprintf("[deepseek] slirp dns ip=%u.%u.%u.%u\n", (ip >> 24) & 0xff, (ip >> 16) & 0xff,
+                (ip >> 8) & 0xff, ip & 0xff);
+        blen = net_https_post_ip(DEEPSEEK_HOST, ip, 443, DEEPSEEK_PATH, deepseek_auth, deepseek_body,
+                                 deepseek_resp, (int)sizeof(deepseek_resp), 25000);
     }
-    if (blen <= 0)
+    if (blen <= 0 && net_dns_resolve(DEEPSEEK_HOST, &ip, 10000) == 0 && ip != 0) {
+        kprintf("[deepseek] DoH ip=%u.%u.%u.%u\n", (ip >> 24) & 0xff, (ip >> 16) & 0xff,
+                (ip >> 8) & 0xff, ip & 0xff);
+        blen = net_https_post_ip(DEEPSEEK_HOST, ip, 443, DEEPSEEK_PATH, deepseek_auth, deepseek_body,
+                                 deepseek_resp, (int)sizeof(deepseek_resp), 25000);
+    }
+    if (blen <= 0) {
+        kprintf("[deepseek] direct API failed (%d)\n", blen);
         return blen < 0 ? blen : EIO;
+    }
 
     clen = extract_content(deepseek_resp, deepseek_content, (int)sizeof(deepseek_content));
     if (clen < 0) {

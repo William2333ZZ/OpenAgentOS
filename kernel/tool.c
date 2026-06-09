@@ -761,6 +761,22 @@ static int run_policy(struct agent *a, long arg0, long arg1, long arg2) {
         return policy_deny_tool(a, (int)arg1);
     case POLICY_CMD_ALLOW:
         return policy_allow_tool(a, (int)arg1);
+    case POLICY_CMD_NET_ALLOW: {
+        char host[64];
+        int len2;
+        if (!arg1)
+            return EINVAL;
+        len2 = user_strnlen((const char *)arg1, sizeof(host) - 1);
+        if (len2 < 0)
+            return EFAULT;
+        if (copy_from_user(host, (const void *)arg1, (unsigned long)len2 + 1) < 0)
+            return EFAULT;
+        return policy_net_add_allow(a, host, (uint16_t)arg2);
+    }
+    case POLICY_CMD_NET_STATUS:
+        return policy_net_status(a);
+    case POLICY_CMD_NET_RESTRICT:
+        return policy_net_set_restrict(a, (int)arg1);
     default:
         return EINVAL;
     }

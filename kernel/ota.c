@@ -6,6 +6,10 @@
 #include "uaccess.h"
 #include "../include/agentos.h"
 
+#include "mbedtls/sha256.h"
+
+static const unsigned char ota_hmac_key[] = "openagentos-ota-dev-key-v1";
+
 static uint32_t ota_crc32_update(uint32_t crc, const unsigned char *data,
                                  unsigned long len) {
     unsigned long i;
@@ -109,6 +113,42 @@ static uint32_t ota_package_sig(const unsigned char *pkg, uint32_t elf_offset,
     return crc ^ 0xffffffffu;
 }
 
+static void ota_compute_hmac(const unsigned char *pkg, int len, unsigned char out[32]) {
+    mbedtls_sha256_context ctx;
+    unsigned char hdr[OTA_MANIFEST_SIZE];
+
+    mbedtls_sha256_init(&ctx);
+    mbedtls_sha256_starts(&ctx, 0);
+    mbedtls_sha256_update(&ctx, ota_hmac_key, sizeof(ota_hmac_key) - 1);
+    if (len < OTA_MANIFEST_SIZE) {
+        mbedtls_sha256_update(&ctx, pkg, (size_t)len);
+    } else {
+        memcpy_local(hdr, pkg, OTA_MANIFEST_SIZE);
+        for (int i = 0; i < 32; i++)
+            hdr[96 + i] = 0;
+        mbedtls_sha256_update(&ctx, hdr, OTA_MANIFEST_SIZE);
+        if (len > OTA_MANIFEST_SIZE)
+            mbedtls_sha256_update(&ctx, pkg + OTA_MANIFEST_SIZE,
+                                  (size_t)len - OTA_MANIFEST_SIZE);
+    }
+    mbedtls_sha256_finish(&ctx, out);
+    mbedtls_sha256_free(&ctx);
+}
+
+static int ota_hmac_match(const unsigned char *pkg, int len, const unsigned char *expect) {
+    unsigned char got[32];
+    int i;
+
+    ota_compute_hmac(pkg, len, got);
+    for (i = 0; i < 32; i++) {
+        if (got[i] != expect[i]) {
+            kprintf("[ota] verify fail: bad hmac signature\n");
+            return EPERM;
+        }
+    }
+    return 0;
+}
+
 static int ota_parse_package(const char *path, struct ota_manifest *manifest_out,
                              const unsigned char **elf_out, int *elf_len_out) {
     unsigned char *buf;
@@ -131,7 +171,9 @@ static int ota_parse_package(const char *path, struct ota_manifest *manifest_out
         return (rc < 0) ? rc : EIO;
 
     m = (const struct ota_manifest *)buf;
-    if (m->magic != OTA_PKG_MAGIC || m->format != OTA_FMT_VERSION)
+    if (m->magic != OTA_PKG_MAGIC)
+        return EINVAL;
+    if (m->format != OTA_FMT_VERSION && m->format != OTA_FMT_SIGNED)
         return EINVAL;
     if (m->elf_offset < OTA_MANIFEST_SIZE)
         return EINVAL;
@@ -139,10 +181,16 @@ static int ota_parse_package(const char *path, struct ota_manifest *manifest_out
         return EINVAL;
     if (m->install_path[0] != '/')
         return EINVAL;
-    if (ota_package_sig(buf, m->elf_offset, (uint32_t)len) != m->sig)
+    if (m->format == OTA_FMT_SIGNED) {
+        if (ota_hmac_match(buf, len, m->hmac) != 0)
+            return EPERM;
+    } else if (ota_package_sig(buf, m->elf_offset, (uint32_t)len) != m->sig) {
         return EPERM;
+    }
     if (!ota_channel_matches(m->channel))
         return EPERM;
+
+    kprintf("[ota] verify ok format=%u pkg=%s\n", m->format, path);
 
     memcpy_local(manifest_out, m, sizeof(*manifest_out));
     *elf_out = buf + m->elf_offset;

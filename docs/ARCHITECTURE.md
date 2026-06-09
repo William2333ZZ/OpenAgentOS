@@ -58,7 +58,8 @@ AgentOS 是以 **Agent** 为一等公民的操作系统：传统 OS 中的进程
 | VirtIO MMIO | 0x10001000–0x10008000 | VirtIO 设备（8 槽，QEMU 10.x） |
 | RAM 起始 | 0x80000000 | QEMU virt 默认 |
 | 内核加载 | 0x80200000 | OpenSBI 跳转地址 |
-| 用户代码 | 0x80300000 | pipeline / llm demo |
+| 用户代码 | 0x80400000 | 静态链接 Agent / console_svc |
+| 动态 ELF | 0x80500000 | OTA / agent_load（linker-agent.ld） |
 | 用户栈 VA | 0x40000000+ | 每 Agent `USER_STACK_SLOT`（8KiB 栈 + 4KiB guard） |
 | 堆 | 0x80600000 起 | bump allocator |
 | 页表池 | 0x80800000 | SV39 页表页 |
@@ -67,20 +68,23 @@ x86 PC 参考机布局见 v4.0 平台描述（[ROADMAP.md](./ROADMAP.md) §11）
 
 ## 扩展路线
 
-**当前基线**：**v6.5**（Multi-tenant + Audit/Namespace/Quota + RISC-V/x86 Console 矩阵 ✅）。
+**当前产品基线**：**0.5.0**（RISC-V VirtIO-net + Console `/llm` DeepSeek 直连 ✅）。**工程基线**：v6.5 + v7 栈。
 
 **规划路径**：
 
 ```
 v3.5 persist v2 ✅
-  → v4.0 Platform ✅ → v4.1 SMP ✅ → v4.2 OTA ✅ → v4.3 Net ✅
-  → v4.3.1 Native LLM Net ✅ → v4.4 Human I/F ✅
-  → v5.0–v5.6 Console / Desktop / Catalog ✅
-  → v6.0–v6.5 Multi-tenant + x86 Console ✅
-  → v7.0 Fleet → v7.1 Remote Console → v7.2 Policy → v8 GA
+  → v4.0 Platform ✅ → … → v6.0–v6.5 Multi-tenant + x86 Console ✅
+  → 产品 0.1.0–0.3.0 x86 GA / faux net ✅
+  → 产品 0.4.0 RISC-V VirtIO-net + TCP ✅
+  → 产品 0.5.0 Guest HTTPS /llm ✅
+  → 产品 0.6.0–0.6.4 x86/RV sandbox-net ✅
+  → 产品 0.7.0 OTA HMAC ✅
+  → **产品 1.0.0 QEMU GA**（[V1.0.0.md](./V1.0.0.md)）
+  → 真板 LTS（[V1.0.0_PLAN.md](./V1.0.0_PLAN.md)）
 ```
 
-详见 [ROADMAP.md](./ROADMAP.md) · [V6_IMPLEMENTATION.md](./V6_IMPLEMENTATION.md) · [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) · [OS_BENCHMARK.md](./OS_BENCHMARK.md)。
+详见 [ROADMAP.md](./ROADMAP.md) · [V6_IMPLEMENTATION.md](./V6_IMPLEMENTATION.md) · [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) · [V0.5.0.md](./V0.5.0.md) · [OS_BENCHMARK.md](./OS_BENCHMARK.md)。
 
 ## 目录结构
 

@@ -36,3 +36,27 @@ int policy_tool_allow(struct agent *a, int tool) {
     (void)tool;
     return 0;
 }
+
+int policy_net_allow(const char *host, uint16_t port) {
+    (void)host;
+    (void)port;
+    return 0;
+}
+
+int policy_net_add_allow(struct agent *a, const char *host, uint16_t port) {
+    (void)a;
+    (void)host;
+    (void)port;
+    return 0;
+}
+
+int policy_net_set_restrict(struct agent *a, int on) {
+    (void)a;
+    (void)on;
+    return 0;
+}
+
+int policy_net_status(struct agent *a) {
+    (void)a;
+    return 0;
+}

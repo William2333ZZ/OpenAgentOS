@@ -325,7 +325,17 @@ static int udp_send(uint32_t dst, uint16_t sport, uint16_t dport, const void *pa
 static uint8_t dhcp_tx_pkt[300];
 static uint8_t dns_query_pkt[512];
 
-static int dns_ip_bogus(uint32_t ip);
+static int dns_accept_bogus;
+
+static int dns_ip_bogus(uint32_t ip) {
+    uint8_t o1 = (uint8_t)((ip >> 24) & 0xff);
+    uint8_t o2 = (uint8_t)((ip >> 16) & 0xff);
+
+    /* 198.18.0.0/15 — common Surge/Clash fake resolver range. */
+    if (o1 == 198 && (o2 == 18 || o2 == 19))
+        return 1;
+    return 0;
+}
 
 static int __attribute__((noinline)) dhcp_send_discover(void) {
     int pos = 0;
@@ -517,6 +527,13 @@ static void dns_handle(const uint8_t *pkt, int len) {
     dns_result_ip = ((uint32_t)pkt[pos] << 24) | ((uint32_t)pkt[pos + 1] << 16) |
                     ((uint32_t)pkt[pos + 2] << 8) | (uint32_t)pkt[pos + 3];
     if (dns_ip_bogus(dns_result_ip)) {
+        if (dns_accept_bogus) {
+            kprintf("[net] dns udp slirp %u.%u.%u.%u (accepted)\n",
+                    (dns_result_ip >> 24) & 0xff, (dns_result_ip >> 16) & 0xff,
+                    (dns_result_ip >> 8) & 0xff, dns_result_ip & 0xff);
+            dns_result_ok = 1;
+            return;
+        }
         kprintf("[net] dns udp bogus %u.%u.%u.%u (ignored)\n", (dns_result_ip >> 24) & 0xff,
                 (dns_result_ip >> 16) & 0xff, (dns_result_ip >> 8) & 0xff,
                 dns_result_ip & 0xff);
@@ -524,16 +541,6 @@ static void dns_handle(const uint8_t *pkt, int len) {
         return;
     }
     dns_result_ok = 1;
-}
-
-static int dns_ip_bogus(uint32_t ip) {
-    uint8_t o1 = (uint8_t)((ip >> 24) & 0xff);
-    uint8_t o2 = (uint8_t)((ip >> 16) & 0xff);
-
-    /* 198.18.0.0/15 — common Surge/Clash fake resolver range. */
-    if (o1 == 198 && (o2 == 18 || o2 == 19))
-        return 1;
-    return 0;
 }
 
 static int __attribute__((noinline)) net_dhcp_acquire(int timeout_ms) {
@@ -1267,6 +1274,39 @@ int net_dns_resolve(const char *host, uint32_t *out_ip, int timeout_ms) {
         return 0;
     }
     kprintf("[net] dns timeout host=%s\n", host);
+    return ETIMEDOUT;
+}
+
+int net_dns_resolve_slirp(const char *host, uint32_t *out_ip, int timeout_ms) {
+    int udp_ms = timeout_ms;
+
+    if (!host || !out_ip || !host[0])
+        return EINVAL;
+    if (parse_ipv4(host, out_ip))
+        return 0;
+    if (!netstack_ready())
+        return ENODEV;
+    if (udp_ms < 2000)
+        udp_ms = 2000;
+
+    dns_server = NET_DNS_HOST;
+    dns_result_ok = 0;
+    dns_result_ip = 0;
+    dns_saw_bogus = 0;
+    dns_accept_bogus = 1;
+    if (arp_resolve(dns_server, udp_ms) == 0 && dns_send_query(host) >= 0) {
+        for (int t = 0; t < udp_ms * 20; t++) {
+            netstack_poll();
+            if (dns_result_ok) {
+                *out_ip = dns_result_ip;
+                dns_accept_bogus = 0;
+                return 0;
+            }
+            for (volatile int j = 0; j < 400; j++)
+                ;
+        }
+    }
+    dns_accept_bogus = 0;
     return ETIMEDOUT;
 }
 

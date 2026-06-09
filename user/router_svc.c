@@ -81,6 +81,43 @@ static void format_llm_rsp(char *out, int reqid, const char *body) {
     out[pos] = '\0';
 }
 
+static int contains_substr(const char *hay, const char *needle) {
+    int i = 0;
+    int j;
+    if (!hay || !needle || !needle[0])
+        return 0;
+    while (hay[i]) {
+        j = 0;
+        while (needle[j] && hay[i + j] == needle[j])
+            j++;
+        if (!needle[j])
+            return 1;
+        i++;
+    }
+    return 0;
+}
+
+static int router_faux(const char *prompt, char *answer, int answer_len) {
+    const char *body = "ok";
+    int len = 2;
+    int i;
+
+    if (!prompt || !answer || answer_len <= 0)
+        return -1;
+    if (contains_substr(prompt, "17+25"))
+        body = "42";
+    else if (contains_substr(prompt, "2+2"))
+        body = "4";
+    len = 0;
+    while (body[len])
+        len++;
+    if (len >= answer_len)
+        return -1;
+    for (i = 0; i <= len; i++)
+        answer[i] = body[i];
+    return len;
+}
+
 void router_agent_main(void) {
     agent_log_str("[router] service ready id=");
     agent_log_int(ROUTER_AGENT_ID);
@@ -139,7 +176,11 @@ void router_agent_main(void) {
             continue;
         }
 
-        n = agent_llm(prompt, answer, (int)sizeof(answer));
+        if (str_eq(backend, "faux")) {
+            n = router_faux(prompt, answer, (int)sizeof(answer));
+        } else {
+            n = agent_llm(prompt, answer, (int)sizeof(answer));
+        }
         if (n < 0) {
             format_llm_rsp(rsp, reqid, "err:llm");
             agent_send_msg(sender, MSG_LLM_RSP, rsp);

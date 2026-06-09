@@ -3,9 +3,9 @@
 [![CI](https://github.com/William2333ZZ/OpenAgentOS/actions/workflows/ci.yml/badge.svg)](https://github.com/William2333ZZ/OpenAgentOS/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-以 **Agent 为一等公民** 的轻量操作系统：**OpenAgentOS**。Capability 隔离、服务化 Agent（storage / router / network）、AOS2 持久化、动态 ELF 加载。当前默认运行在 QEMU **RISC-V `virt`** 与 **x86 `pc`** Console 子集。
+以 **Agent 为一等公民** 的轻量操作系统：**OpenAgentOS**。Capability 隔离、服务化 Agent（storage / router / network）、AOS2 持久化、动态 ELF 加载。当前产品版本 **1.0.0 GA**（QEMU 验收）；默认运行在 QEMU **RISC-V `virt`** 与 **x86 `pc`** Console 子集。
 
-**产品路线图**：[docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md) · **个人品牌**：[docs/BRAND.md](docs/BRAND.md)
+**产品路线图**：[docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md) · **版本迭代设计**：[docs/RELEASE_ITERATIONS.md](docs/RELEASE_ITERATIONS.md) · **个人品牌**：[docs/BRAND.md](docs/BRAND.md)
 
 Agent IPC 设计参考 [pi Agent Harness](https://github.com/earendil-works/pi)（MIT，未捆绑在本仓库）；系统能力经统一 Tool 网关暴露。
 
@@ -325,26 +325,54 @@ make run-console-quota
 make check-console-quota    # CI：ipc burn + probe ENOSPC（~3s）
 ```
 
-### OpenAgentOS 0.5.0（当前）
+### OpenAgentOS 1.0.0（当前 — QEMU GA）
+
+**Agent Sandbox Runtime** 产品线：`0.6.0` → `0.6.4` patch 栈 + `0.7.0` OTA 签名 + **1.0.0** 聚合 gate。模型见 [docs/SANDBOX.md](docs/SANDBOX.md) · 迭代见 [docs/V0.6.x.md](docs/V0.6.x.md) · [docs/V1.0.0.md](docs/V1.0.0.md)。
+
+```bash
+make check-ga-1.0      # GA gate：0.6.0 + 0.6.4 + 0.7.0 + 1.0.0 banner (~60s)
+```
+
+分 patch 验收：
+
+```bash
+make check-0.6.0       # x86 sandbox-net (~20s)
+make check-0.6.2       # RISC-V + x86 双平台 + router faux
+make check-0.6.3       # network egress policy
+make check-0.6.4       # /sandbox status
+make check-0.7.0       # OTA format-2 HMAC + check-ota
+make check-0.6.1       # HTTPS fleet + router（已知：TLS ingest 待修）
+make check-0.5.0       # RISC-V DeepSeek /llm 回归 (~75s)
+```
+
+产物：`kernel-console-v100.elf`（RISC-V）、`kernel-x86-0.6.2.elf` 等；动态加载 Agent ELF 链接 `@ 0x80500000`（`linker-agent.ld`）。
+
+### OpenAgentOS 0.6.0 — x86 sandbox-net
+
+**0.6.x** 首个 patch：x86 VirtIO-net PCI parity。详见 [docs/V0.6.0.md](docs/V0.6.0.md)。
+
+### OpenAgentOS 0.5.0
 
 VirtIO-net + Console `/llm` DeepSeek（继承 0.4.0 fleet/remote）：
 
 ```bash
-cp .env.example .env   # 填入 DEEPSEEK_API_KEY（可选，无 key 时 faux 回退）
+cp .env.example .env   # 必填 DEEPSEEK_API_KEY
 
 python3 tools/fleet-collector.py --host 0.0.0.0 --port 8765
 python3 tools/remote-gateway.py --port 5557
-python3 tools/deepseek-net-gw.py   # TLS 回退网关 :8443
+# 无需 deepseek-net-gw.py — Guest 内 mbedTLS 直连 api.deepseek.com
 
 make run-riscv-0.5.0
 # agentos> /llm What is 17+25?  → answer: 42
 
-make check-0.5.0       # 别名 check-llm-console (~20s)
+make check-0.5.0       # 别名 check-llm-console (~75s，含 HTTPS)
 ```
+
+详见 [docs/V0.5.0.md](docs/V0.5.0.md)。
 
 ### OpenAgentOS 0.4.0
 
-VirtIO-net Fleet HTTP POST + Remote TCP 真链路（**验收用 RISC-V**；x86 PCI net 实验性）：
+VirtIO-net Fleet HTTP POST + Remote TCP 真链路（**验收用 RISC-V**；x86 PCI net 见 0.6.0）：
 
 ```bash
 # 终端 1：启动 collector + gateway（check 脚本会自动拉起）
@@ -365,7 +393,7 @@ x86 实验（VirtIO-net PCI，RX 待完善）：
 make run-x86-0.4.0
 ```
 
-详见 [docs/VERSIONING.md](docs/VERSIONING.md)。
+详见 [docs/V0.4.0.md](docs/V0.4.0.md) · [docs/V0.6.0_PLAN.md](docs/V0.6.0_PLAN.md)。
 
 ### OpenAgentOS 0.3.0
 
@@ -464,6 +492,16 @@ python3 tools/deepseek-bridge.py
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 整体架构 |
 | [docs/AGENT_MODEL.md](docs/AGENT_MODEL.md) | Agent 数据模型 |
 | [docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md) | 统一产品路线图 v0.x → v1.0 |
+| [docs/RELEASE_ITERATIONS.md](docs/RELEASE_ITERATIONS.md) | **0.6–1.0 版本迭代设计总览** |
+| [docs/VERSIONING.md](docs/VERSIONING.md) | SemVer 规范与验收命令 |
+| [docs/V0.4.0.md](docs/V0.4.0.md) | 0.4.0 VirtIO-net 发布说明 |
+| [docs/V0.5.0.md](docs/V0.5.0.md) | 0.5.0 DeepSeek 直连发布说明 |
+| [docs/V1.0.0.md](docs/V1.0.0.md) | **1.0.0 QEMU GA 发布说明** |
+| [docs/V0.7.0.md](docs/V0.7.0.md) | 0.7.0 OTA HMAC 发布说明 |
+| [docs/V0.6.0.md](docs/V0.6.0.md) | 0.6.0 x86 sandbox-net 发布说明 |
+| [docs/V0.6.0_PLAN.md](docs/V0.6.0_PLAN.md) | 0.6.0 x86 net parity 设计 |
+| [docs/V0.7.0_PLAN.md](docs/V0.7.0_PLAN.md) | 0.7.0 OTA HMAC 设计 |
+| [docs/V1.0.0_PLAN.md](docs/V1.0.0_PLAN.md) | 真板 LTS / 集成商 GA 规划 |
 | [docs/BRAND.md](docs/BRAND.md) | 个人品牌与开源运营 |
 | [docs/V0.2_RC.md](docs/V0.2_RC.md) | v0.2-rc 双平台 v7 |
 | [docs/V0.1_BETA.md](docs/V0.1_BETA.md) | v0.1-beta GA 子 OS |
@@ -475,7 +513,8 @@ python3 tools/deepseek-bridge.py
 include/agentos.h    共享 syscall 定义
 kernel/              内核（vm / sched / virtio / persist / session）
 user/                Agent 应用 + libagent + agent_svc.c
-linker.ld            内核 @ 0x80200000，用户代码 @ 0x80300000
+linker.ld            内核 @ 0x80200000，静态用户 Agent @ 0x80400000
+linker-agent.ld      动态加载 Agent ELF @ 0x80500000
 tools/               DeepSeek bridge
 scripts/             QEMU / LLM / v1 启动脚本
 ```
@@ -528,12 +567,19 @@ scripts/             QEMU / LLM / v1 启动脚本
 | **0.3.0** | **Fleet ingest + Remote ping + check-0.3.0** | **✅** |
 | **0.4.0** | **VirtIO-net ingest + Remote TCP + check-0.4.0** | **✅** |
 | **0.5.0** | **Console DeepSeek /llm + check-0.5.0** | **✅** |
+| **0.6.0** | **x86 sandbox-net + check-0.6.0** | **✅** → [V0.6.0.md](docs/V0.6.0.md) |
+| **0.6.1** | **HTTPS fleet + router faux** | **⚠️** `check-0.6.1` TLS ingest 待修 → [PLAN](docs/V0.6.1_PLAN.md) |
+| **0.6.2** | **双平台 + router** | **✅** `check-0.6.2` |
+| **0.6.3** | **net egress policy** | **✅** `check-0.6.3` |
+| **0.6.4** | **`/sandbox status`** | **✅** `check-0.6.4` |
+| **0.7.0** | **OTA format-2 HMAC** | **✅** `check-0.7.0` → [PLAN](docs/V0.7.0_PLAN.md) |
+| **1.0.0** | **QEMU GA gate** | **✅** `check-ga-1.0` → [V1.0.0.md](docs/V1.0.0.md) |
 | **v0.1-beta** | **x86 GA 子 OS（v7 全栈）+ check-v0.1-beta** | **✅ (semver 0.1.0)** |
 | v7.0 | Fleet 遥测（合入 v0.1-beta） | ✅ |
 | v7.1 | Remote Console stub（合入 v0.1-beta） | ✅ |
 | v7.2 | Policy-as-Code（合入 v0.1-beta） | ✅ |
 | v7.3 | Agent Mesh MVP（合入 v0.1-beta） | ✅ |
-| **GA 1.0** | 生产 LTS（目标 2027 Q3） | 规划 |
+| **GA 1.0** | **QEMU 产品 GA（2026-06）**；真板 LTS 见 [V1.0.0_PLAN.md](docs/V1.0.0_PLAN.md) | **✅ QEMU** |
 
 ## License
 

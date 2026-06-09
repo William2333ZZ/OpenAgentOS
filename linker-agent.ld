@@ -3,7 +3,7 @@ ENTRY(worker_main)
 
 SECTIONS
 {
-    . = 0x80400000;
+    . = 0x80500000;
 
     .text : {
         *(.text .text.*)

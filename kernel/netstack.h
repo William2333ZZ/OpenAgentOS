@@ -18,6 +18,7 @@ int netstack_ready(void);
 void netstack_poll(void);
 
 int net_dns_resolve(const char *host, uint32_t *out_ip, int timeout_ms);
+int net_dns_resolve_slirp(const char *host, uint32_t *out_ip, int timeout_ms);
 int net_tcp_connect_ip(uint32_t ip, uint16_t port, int timeout_ms);
 int net_tcp_connect_host(const char *host, uint16_t port, int timeout_ms);
 int net_tcp_write(const void *data, int len);
@@ -27,9 +28,12 @@ void net_tcp_close(void);
 int net_http_get(const char *url, char *body, int body_len);
 int net_http_post(const char *host, uint16_t port, const char *path, const char *headers,
                   const char *body, char *resp, int resp_len, int timeout_ms);
+int net_https_post_port(const char *host, uint16_t port, const char *path, const char *headers,
+                        const char *body, char *resp, int resp_len, int timeout_ms);
 int net_https_post(const char *host, const char *path, const char *headers,
                    const char *body, char *resp, int resp_len, int timeout_ms);
-int net_https_post_ip(const char *host, uint32_t ip, const char *path, const char *headers,
-                      const char *body, char *resp, int resp_len, int timeout_ms);
+int net_https_post_ip(const char *host, uint32_t ip, uint16_t port, const char *path,
+                      const char *headers, const char *body, char *resp, int resp_len,
+                      int timeout_ms);
 
 #endif

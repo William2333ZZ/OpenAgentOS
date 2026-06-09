@@ -89,7 +89,8 @@ Agent-native OS — agents, capabilities, and tools at the kernel level.
 每次 Release  checklist：
 
 - [ ] `make check-v0.x-*` 绿  
-- [ ] [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) 更新  
+- [ ] [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md) 与 [RELEASE_ITERATIONS.md](./RELEASE_ITERATIONS.md) 更新  
+- [ ] 对应 `V0.x.0_PLAN.md` → 交付后写 `V0.x.0.md`  
 - [ ] GitHub Release Note（中英文各一段）  
 - [ ] 60s 演示录屏或 GIF  
 - [ ] 社交帖 1 条（链到 Release）  

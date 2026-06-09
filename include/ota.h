@@ -5,6 +5,7 @@
 
 #define OTA_PKG_MAGIC   0x4b504f41u /* 'AOPK' little-endian */
 #define OTA_FMT_VERSION 1
+#define OTA_FMT_SIGNED  2
 
 #define OTA_CHANNEL_STABLE "stable"
 #define OTA_CHANNEL_BETA   "beta"
@@ -22,7 +23,8 @@ struct ota_manifest {
     uint32_t caps;
     uint32_t elf_offset;
     uint32_t elf_size;
-    char install_path[48];
+    char install_path[16];
+    uint8_t hmac[32];
 };
 
 #define OTA_MANIFEST_SIZE 128

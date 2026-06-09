@@ -1,8 +1,8 @@
 # OpenAgentOS 路线图
 
-日期：2026-06-08（**v0.2-rc** ✅ · **v0.1-beta** ✅；见 [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md)）
+日期：2026-06-04（**0.5.0** ✅ · **0.4.0** ✅ · **0.3.0** ✅ · **0.2.0** ✅ · **0.1.0** ✅；见 [PRODUCT_ROADMAP.md](./PRODUCT_ROADMAP.md)）
 
-本文档描述 OpenAgentOS **未来应用方向**与**分阶段实现计划**。当前基线：**v0.2-rc**（双平台 v7 + policy load + 分项 check）。
+本文档描述 OpenAgentOS **未来应用方向**与**分阶段实现计划**。当前产品基线：**0.5.0**（RISC-V VirtIO-net + Console `/llm` DeepSeek 直连）；下一目标 **0.6.0**（x86 net parity，见 [V0.6.0_PLAN.md](./V0.6.0_PLAN.md)）。
 
 相关文档：[DESIGN.md](./DESIGN.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [AGENT_MODEL.md](./AGENT_MODEL.md) · [V5_IMPLEMENTATION.md](./V5_IMPLEMENTATION.md) · [V6_IMPLEMENTATION.md](./V6_IMPLEMENTATION.md) · [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) · [OS_BENCHMARK.md](./OS_BENCHMARK.md)
 

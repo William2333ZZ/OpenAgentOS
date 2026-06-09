@@ -17,7 +17,7 @@ MBEDTLS_CFLAGS := $(CFLAGS) -I$(MBEDTLS_DIR)/include -Ikernel -Igenerated \
   -DMBEDTLS_CONFIG_FILE=\"mbedtls_config_agentos.h\"
 MBEDTLS_LIBS := aes asn1parse asn1write bignum bignum_core cipher cipher_wrap constant_time \
   ctr_drbg ecp ecp_curves ecdh entropy error gcm md oid pk pk_wrap pk_ecc pkparse \
-  platform_util rsa rsa_alt_helpers sha256 ssl_ciphersuites ssl_client ssl_msg ssl_tls \
+  platform_util rsa rsa_alt_helpers sha256 sha512 ssl_ciphersuites ssl_client ssl_msg ssl_tls \
   ssl_tls12_client x509 x509_crt
 MBEDTLS_OBJS := $(addprefix $(MBEDTLS_DIR)/library/, $(addsuffix .o,$(MBEDTLS_LIBS)))
 
@@ -214,6 +214,17 @@ CONSOLE_V050_RV_OBJS := $(filter-out kernel/kernel_v040_riscv.o user/demo_v040.o
            $(MBEDTLS_OBJS) \
            kernel/kernel_v050_riscv.o user/demo_v050.o user/router_svc.o
 
+CONSOLE_PRODUCT_RV_KERN := $(filter-out kernel/kernel_v050_riscv.o user/demo_v050.o,$(CONSOLE_V050_RV_OBJS))
+
+CONSOLE_V061_RV_OBJS := $(CONSOLE_PRODUCT_RV_KERN) kernel/kernel_v061_riscv.o user/demo_v061.o
+CONSOLE_V062_RV_OBJS := $(CONSOLE_PRODUCT_RV_KERN) kernel/kernel_v062_riscv.o user/demo_v062.o
+CONSOLE_V063_RV_OBJS := $(CONSOLE_PRODUCT_RV_KERN) kernel/kernel_v063_riscv.o user/demo_v063.o
+CONSOLE_V064_RV_OBJS := $(CONSOLE_PRODUCT_RV_KERN) kernel/kernel_v064_riscv.o user/demo_v064.o
+CONSOLE_V070_RV_OBJS := $(filter-out kernel/ota_stub.o,$(CONSOLE_PRODUCT_RV_KERN)) kernel/ota.o \
+           kernel/kernel_v070_riscv.o user/demo_v070.o
+CONSOLE_V100_RV_OBJS := $(filter-out kernel/ota_stub.o,$(CONSOLE_PRODUCT_RV_KERN)) kernel/ota.o \
+           kernel/kernel_v100_riscv.o user/demo_v100.o
+
 DESKTOP_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o kernel/printf.o \
            kernel/halt.o kernel/mem.o kernel/ipc.o kernel/uaccess.o kernel/ramfs.o \
            kernel/tool.o kernel/audit.o kernel/namespace.o kernel/quota.o kernel/http-faux.o kernel/agent.o kernel/sched.o kernel/timer.o \
@@ -291,7 +302,7 @@ OTA_BASE_OBJS := $(PLATFORM_RV_OBJS) kernel/entry.o kernel/trap.o kernel/uart.o 
         platform check-platform run-x86-smoke check-wrap-x86 check-console-x86 \
         check-console-x86-tenant check-console-x86-audit check-console-x86-namespace \
         check-console-x86-all check-v0.1-beta check-v0.2-rc check-0.1.0 check-0.2.0 \
-        check-0.3.0 check-0.4.0 check-0.5.0 check-remote-console check-llm-console \
+        check-0.3.0 check-0.4.0 check-0.5.0 check-0.6.0 check-remote-console check-llm-console \
         check-console-v7 check-fleet-x86 \
         run-x86-v01-beta run-x86-v02-rc run-x86-0.3.0 run-x86-0.4.0 run-riscv-0.4.0 run-riscv-0.5.0 \
         run-smp check-smp smp \
@@ -389,7 +400,7 @@ generated/deepseek_host.h:
 	chmod +x scripts/mk-deepseek-host.sh
 	./scripts/mk-deepseek-host.sh
 
-kernel-llm-net.elf: generated/deepseek_key.h generated/deepseek_host.h $(LLM_NET_BASE_OBJS) linker.ld
+kernel-llm-net.elf: generated/deepseek_key.h $(LLM_NET_BASE_OBJS) linker.ld
 	$(CC) $(LDFLAGS) -o $@ $(LLM_NET_BASE_OBJS)
 
 kernel-ui.elf: $(UI_BASE_OBJS) linker.ld
@@ -428,8 +439,26 @@ kernel-console-v7.elf: $(CONSOLE_V7_BASE_OBJS) linker.ld
 kernel-console-v040.elf: $(CONSOLE_V040_RV_OBJS) linker.ld
 	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V040_RV_OBJS)
 
-kernel-console-v050.elf: generated/deepseek_key.h generated/deepseek_host.h $(CONSOLE_V050_RV_OBJS) linker.ld
+kernel-console-v050.elf: generated/deepseek_key.h $(CONSOLE_V050_RV_OBJS) linker.ld
 	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V050_RV_OBJS)
+
+kernel-console-v061.elf: generated/deepseek_key.h $(CONSOLE_V061_RV_OBJS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V061_RV_OBJS)
+
+kernel-console-v062.elf: generated/deepseek_key.h $(CONSOLE_V062_RV_OBJS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V062_RV_OBJS)
+
+kernel-console-v063.elf: generated/deepseek_key.h $(CONSOLE_V063_RV_OBJS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V063_RV_OBJS)
+
+kernel-console-v064.elf: generated/deepseek_key.h $(CONSOLE_V064_RV_OBJS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V064_RV_OBJS)
+
+kernel-console-v070.elf: generated/deepseek_key.h $(CONSOLE_V070_RV_OBJS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V070_RV_OBJS)
+
+kernel-console-v100.elf: generated/deepseek_key.h $(CONSOLE_V100_RV_OBJS) linker.ld
+	$(CC) $(LDFLAGS) -o $@ $(CONSOLE_V100_RV_OBJS)
 
 kernel-desktop.elf: $(DESKTOP_BASE_OBJS) linker.ld user/worker_elf.inc
 	$(CC) $(LDFLAGS) -o $@ $(DESKTOP_BASE_OBJS)
@@ -447,7 +476,9 @@ kernel-smp.elf: $(SMP_BASE_OBJS) linker.ld
 	$(CC) $(LDFLAGS) -o $@ $(SMP_BASE_OBJS)
 
 kernel-ota.elf: $(filter-out kernel/ota_stub.o,$(OTA_BASE_OBJS)) kernel/ota.o linker.ld user/worker_ota_v2_pkg.inc user/worker_ota_v1_elf.inc
-	$(CC) $(LDFLAGS) -o $@ $(filter-out kernel/ota_stub.o,$(OTA_BASE_OBJS)) kernel/ota.o
+	$(CC) $(LDFLAGS) -o $@ $(filter-out kernel/ota_stub.o,$(OTA_BASE_OBJS)) kernel/ota.o \
+	  kernel/string.o kernel/mbedtls_port.o \
+	  third_party/mbedtls/library/sha256.o third_party/mbedtls/library/platform_util.o
 
 kernel-ota-old.elf: $(OTA_BASE_OBJS) linker.ld user/worker_ota_v2_pkg.inc user/worker_ota_v1_elf.inc
 	$(CC) $(LDFLAGS) -o $@ $(OTA_BASE_OBJS)
@@ -563,7 +594,7 @@ kernel/smp.o: kernel/smp.c kernel/smp.h
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 kernel/ota.o: kernel/ota.c include/ota.h
-	$(CC) $(CFLAGS) -c -o $@ kernel/ota.c
+	$(CC) $(CFLAGS) -Ithird_party/mbedtls/include -DMBEDTLS_CONFIG_FILE=\"mbedtls_config_agentos.h\" -c -o $@ kernel/ota.c
 
 kernel/catalog.o: kernel/catalog.c include/catalog.h include/ota.h
 	$(CC) $(CFLAGS) -c -o $@ kernel/catalog.c
@@ -1145,9 +1176,24 @@ X86_V030_KERN_OBJS := $(subst kernel/platform_x86_v02.o,kernel/platform_x86_v03.
 X86_V030_OBJS := $(X86_V030_KERN_OBJS) kernel/kernel_v030_x86.o \
                  user/demo_v030_x86.o $(X86_CONSOLE_SVC_OBJS)
 
-X86_V040_KERN_OBJS := $(filter-out kernel/netstack_stub_x86.o,$(subst kernel/platform_x86_v03.o,kernel/platform_x86_v04.o,$(subst kernel/http-faux_x86.o,kernel/http_x86.o kernel/netstack_x86.o kernel/arch/x86/virtio_pci_net.o,$(X86_V030_KERN_OBJS))))
+X86_V040_KERN_OBJS := $(filter-out kernel/netstack_stub_x86.o,$(subst kernel/platform_x86_v03.o,kernel/platform_x86_v04.o,$(subst kernel/http-faux_x86.o,kernel/http_x86.o kernel/netstack_x86.o kernel/net_https_stub_x86.o kernel/arch/x86/virtio_pci_net.o,$(X86_V030_KERN_OBJS))))
 X86_V040_OBJS := $(X86_V040_KERN_OBJS) kernel/kernel_v040_x86.o \
                  user/demo_v040_x86.o $(X86_CONSOLE_SVC_OBJS)
+
+X86_V060_KERN_OBJS := $(subst kernel/platform_x86_v04.o,kernel/platform_x86_v06.o,$(X86_V040_KERN_OBJS))
+X86_V060_OBJS := $(X86_V060_KERN_OBJS) kernel/kernel_v060_x86.o \
+                 user/demo_v060_x86.o $(X86_CONSOLE_SVC_OBJS)
+
+X86_V062_OBJS := $(X86_V060_KERN_OBJS) kernel/kernel_v062_x86.o user/demo_v062_x86.o \
+                 user/router_svc_x86.o $(X86_CONSOLE_SVC_OBJS)
+X86_V063_OBJS := $(X86_V060_KERN_OBJS) kernel/kernel_v063_x86.o user/demo_v063_x86.o \
+                 user/router_svc_x86.o $(X86_CONSOLE_SVC_OBJS)
+X86_V064_OBJS := $(X86_V060_KERN_OBJS) kernel/kernel_v064_x86.o user/demo_v064_x86.o \
+                 user/router_svc_x86.o $(X86_CONSOLE_SVC_OBJS)
+X86_V070_OBJS := $(X86_V060_KERN_OBJS) kernel/kernel_v070_x86.o user/demo_v070_x86.o \
+                 user/router_svc_x86.o $(X86_CONSOLE_SVC_OBJS)
+X86_V100_OBJS := $(X86_V060_KERN_OBJS) kernel/kernel_v100_x86.o user/demo_v100_x86.o \
+                 user/router_svc_x86.o $(X86_CONSOLE_SVC_OBJS)
 
 X86_CONSOLE_OBJS := $(X86_CONSOLE_KERN_OBJS) kernel/kernel_console_x86_quota.o \
                  user/demo_console_quota_x86.o $(X86_CONSOLE_SVC_OBJS)
@@ -1193,6 +1239,24 @@ kernel-x86-0.3.0.elf: $(X86_V030_OBJS) linker_x86.ld
 kernel-x86-0.4.0.elf: $(X86_V040_OBJS) linker_x86.ld
 	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V040_OBJS)
 
+kernel-x86-0.6.0.elf: $(X86_V060_OBJS) linker_x86.ld
+	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V060_OBJS)
+
+kernel-x86-0.6.2.elf: $(X86_V062_OBJS) linker_x86.ld
+	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V062_OBJS)
+
+kernel-x86-0.6.3.elf: $(X86_V063_OBJS) linker_x86.ld
+	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V063_OBJS)
+
+kernel-x86-0.6.4.elf: $(X86_V064_OBJS) linker_x86.ld
+	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V064_OBJS)
+
+kernel-x86-0.7.0.elf: $(X86_V070_OBJS) linker_x86.ld
+	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V070_OBJS)
+
+kernel-x86-1.0.0.elf: $(X86_V100_OBJS) linker_x86.ld
+	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_V100_OBJS)
+
 kernel-x86-smoke.elf: $(X86_SMOKE_OBJS) linker_x86.ld
 	$(X86_CC) $(X86_LDFLAGS) -o $@ $(X86_SMOKE_OBJS)
 
@@ -1231,6 +1295,9 @@ user/demo_v030_x86.o: user/demo_v030.c user/libagent.h include/agentos.h
 
 user/demo_v040_x86.o: user/demo_v040.c user/libagent.h include/agentos.h
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v040.c
+
+user/demo_v060_x86.o: user/demo_v060.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v060.c
 
 user/agent_svc_x86.o: user/agent_svc.c user/libagent.h include/agentos.h
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/agent_svc.c
@@ -1282,6 +1349,78 @@ kernel/kernel_v030_x86.o: kernel/kernel_v030_x86.c
 kernel/kernel_v040_x86.o: kernel/kernel_v040_x86.c
 	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
 
+kernel/kernel_v060_x86.o: kernel/kernel_v060_x86.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
+
+kernel/kernel_v061_riscv.o: kernel/kernel_v061_riscv.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+kernel/kernel_v062_riscv.o: kernel/kernel_v062_riscv.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+kernel/kernel_v063_riscv.o: kernel/kernel_v063_riscv.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+kernel/kernel_v064_riscv.o: kernel/kernel_v064_riscv.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+kernel/kernel_v070_riscv.o: kernel/kernel_v070_riscv.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+kernel/kernel_v100_riscv.o: kernel/kernel_v100_riscv.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+kernel/kernel_v062_x86.o: kernel/kernel_v062_x86.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
+
+kernel/kernel_v063_x86.o: kernel/kernel_v063_x86.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
+
+kernel/kernel_v064_x86.o: kernel/kernel_v064_x86.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
+
+kernel/kernel_v070_x86.o: kernel/kernel_v070_x86.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
+
+kernel/kernel_v100_x86.o: kernel/kernel_v100_x86.c
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ $<
+
+user/demo_v061.o: user/demo_v061.c user/libagent.h include/agentos.h
+	$(CC) $(CFLAGS) -c -o $@ user/demo_v061.c
+
+user/demo_v062.o: user/demo_v062.c user/libagent.h include/agentos.h
+	$(CC) $(CFLAGS) -c -o $@ user/demo_v062.c
+
+user/demo_v063.o: user/demo_v063.c user/libagent.h include/agentos.h
+	$(CC) $(CFLAGS) -c -o $@ user/demo_v063.c
+
+user/demo_v064.o: user/demo_v064.c user/libagent.h include/agentos.h
+	$(CC) $(CFLAGS) -c -o $@ user/demo_v064.c
+
+user/demo_v070.o: user/demo_v070.c user/libagent.h include/agentos.h
+	$(CC) $(CFLAGS) -c -o $@ user/demo_v070.c
+
+user/demo_v100.o: user/demo_v100.c user/libagent.h include/agentos.h
+	$(CC) $(CFLAGS) -c -o $@ user/demo_v100.c
+
+user/demo_v062_x86.o: user/demo_v062_x86.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v062_x86.c
+
+user/demo_v063_x86.o: user/demo_v063_x86.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v063_x86.c
+
+user/demo_v064_x86.o: user/demo_v064_x86.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v064_x86.c
+
+user/demo_v070_x86.o: user/demo_v070_x86.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v070_x86.c
+
+user/demo_v100_x86.o: user/demo_v100_x86.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/demo_v100_x86.c
+
+user/router_svc_x86.o: user/router_svc.c user/libagent.h include/agentos.h
+	$(X86_CC) $(X86_CFLAGS) -c -o $@ user/router_svc.c
+
 kernel/kernel_v050_riscv.o: kernel/kernel_v050_riscv.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -1299,6 +1438,9 @@ kernel/platform_x86_v03.o: kernel/platform.c include/platform.h
 
 kernel/platform_x86_v04.o: kernel/platform.c include/platform.h
 	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"0.4.0\" -c -o $@ $<
+
+kernel/platform_x86_v06.o: kernel/platform.c include/platform.h
+	$(X86_CC) $(X86_CFLAGS) -DAGENTOS_VERSION=\"0.6.0\" -c -o $@ $<
 
 kernel/http_x86.o: kernel/http.c
 	$(X86_CC) $(X86_CFLAGS) -DHTTP_NO_BRIDGE -c -o $@ $<
@@ -1367,6 +1509,34 @@ check-0.5.0:
 	chmod +x scripts/check-0.5.0.sh
 	./scripts/check-0.5.0.sh
 
+check-0.6.0:
+	chmod +x scripts/check-0.6.0.sh
+	./scripts/check-0.6.0.sh
+
+check-0.6.1:
+	chmod +x scripts/check-0.6.1.sh scripts/mk-fleet-tls-cert.sh
+	./scripts/check-0.6.1.sh
+
+check-0.6.2:
+	chmod +x scripts/check-0.6.2.sh
+	./scripts/check-0.6.2.sh
+
+check-0.6.3:
+	chmod +x scripts/check-0.6.3.sh
+	./scripts/check-0.6.3.sh
+
+check-0.6.4:
+	chmod +x scripts/check-0.6.4.sh
+	./scripts/check-0.6.4.sh
+
+check-0.7.0:
+	chmod +x scripts/check-0.7.0.sh
+	./scripts/check-0.7.0.sh
+
+check-ga-1.0:
+	chmod +x scripts/check-ga-1.0.sh
+	./scripts/check-ga-1.0.sh
+
 check-remote-console: check-0.4.0
 
 check-llm-console: check-0.5.0
@@ -1386,6 +1556,10 @@ run-x86-0.3.0: kernel-x86-0.3.0.elf
 
 run-x86-0.4.0: kernel-x86-0.4.0.elf
 	qemu-system-x86_64 -machine pc -nographic -kernel kernel-x86-0.4.0.elf -display none \
+	  -netdev user,id=net0 -device virtio-net-pci,netdev=net0
+
+run-x86-0.6.0: kernel-x86-0.6.0.elf
+	qemu-system-x86_64 -machine pc -nographic -kernel kernel-x86-0.6.0.elf -display none \
 	  -netdev user,id=net0 -device virtio-net-pci,netdev=net0
 
 run-riscv-0.4.0: kernel-console-v040.elf

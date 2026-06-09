@@ -3,6 +3,7 @@
 #include "printf.h"
 #include "ramfs.h"
 #include "quota.h"
+#include "policy.h"
 #include "timer.h"
 #include "http.h"
 #include "../include/platform.h"
@@ -47,17 +48,19 @@ static int append_int(char *buf, int pos, int cap, int val) {
 }
 
 static int parse_http_url(const char *url, char *host, int hcap, char *path, int pcap,
-                          uint16_t *port) {
+                          uint16_t *port, int *is_https) {
     int i = 0;
     int hp = 0;
     int pp = 0;
 
-    if (!url || !host || !path || !port || hcap <= 0 || pcap <= 0)
+    if (!url || !host || !path || !port || !is_https || hcap <= 0 || pcap <= 0)
         return EINVAL;
+    *is_https = 0;
     if (url[0] != 'h' || url[1] != 't' || url[2] != 't' || url[3] != 'p')
         return EINVAL;
     i = 4;
     if (url[i] == 's') {
+        *is_https = 1;
         i++;
         if (url[i] != ':')
             return EINVAL;
@@ -75,7 +78,7 @@ static int parse_http_url(const char *url, char *host, int hcap, char *path, int
     if (!hp)
         return EINVAL;
 
-    *port = 80;
+    *port = *is_https ? 443 : 80;
     if (url[i] == ':') {
         unsigned long p = 0;
         i++;
@@ -108,12 +111,22 @@ static int fleet_ingest_net(const char *url, const char *json, int json_len, cha
     char host[64];
     char path[128];
     uint16_t port;
+    int is_https = 0;
     int rc;
 
     (void)json_len;
-    rc = parse_http_url(url, host, (int)sizeof(host), path, (int)sizeof(path), &port);
+    rc = parse_http_url(url, host, (int)sizeof(host), path, (int)sizeof(path), &port,
+                        &is_https);
     if (rc < 0)
         return rc;
+    if (policy_net_allow(host, port) != 0)
+        return EPERM;
+    if (is_https) {
+        rc = net_https_post_port(host, port, path, 0, json, resp, resp_len, 15000);
+        if (rc >= 0)
+            kprintf("[fleet] ingest tls ok agent url=%s bytes=%d\n", url, rc);
+        return rc;
+    }
     return net_http_post(host, port, path, 0, json, resp, resp_len, 12000);
 }
 

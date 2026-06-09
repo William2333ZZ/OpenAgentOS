@@ -3,7 +3,7 @@
 
 /* OpenAgentOS product semver (MAJOR.MINOR.PATCH) */
 #ifndef OPENAGENTOS_VERSION
-#define OPENAGENTOS_VERSION "0.5.0"
+#define OPENAGENTOS_VERSION "1.0.0"
 #endif
 
 #endif

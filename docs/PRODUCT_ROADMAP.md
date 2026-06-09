@@ -1,8 +1,8 @@
 # OpenAgentOS 产品路线图（统一版）
 
-日期：2026-06-08  
+日期：2026-06-04  
 维护者：OpenAgentOS 项目  
-相关：[ROADMAP.md](./ROADMAP.md) · [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) · [V0.1_BETA.md](./V0.1_BETA.md) · [BRAND.md](./BRAND.md)
+相关：[ROADMAP.md](./ROADMAP.md) · [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) · [V0.5.0.md](./V0.5.0.md) · [V0.6.0_PLAN.md](./V0.6.0_PLAN.md) · [BRAND.md](./BRAND.md)
 
 ---
 
@@ -29,6 +29,7 @@ flowchart LR
     rc03[0.3.0 ✅]
     rc04[0.4.0 ✅]
     rc05[0.5.0 ✅]
+    rc06[0.6.0 规划]
     ga10[1.0.0 GA]
   end
   v65 --> b01
@@ -37,7 +38,7 @@ flowchart LR
   v72 --> rc02
   v73 --> rc02
   v80 --> ga10
-  rc02 --> rc03 --> rc04 --> rc05 --> ga10
+  rc02 --> rc03 --> rc04 --> rc05 --> rc06 --> ga10
 ```
 
 **原则**：工程可以并行；产品 Release 只打包「可验收、可演示、可写文档」的组合。
@@ -102,16 +103,17 @@ flowchart LR
 
 ## 6. 已交付：0.5.0（2026-06）
 
-**主题**：Console `/llm` DeepSeek（VirtIO-net + router + mbedTLS）
+**主题**：Console `/llm` DeepSeek 直连（VirtIO-net + router + mbedTLS，无 host bridge）
 
 | 子项 | 交付 | 验收 |
 |------|------|------|
 | model-router | `router_svc` + `CAP_LLM` | `make check-0.5.0` |
-| DeepSeek | `llm_deepseek` + host gw 回退 | `make check-0.5.0` |
-| Console `/llm` | backend=deepseek，无 key 时 faux | `make check-0.5.0` |
+| DeepSeek | `llm_deepseek` Guest 内 HTTPS 直连 | `make check-0.5.0` |
+| Console `/llm` | backend=deepseek；无 key 时失败并提示 | `make check-0.5.0` |
 | 产品内核 | `kernel-console-v050.elf` | `make check-0.5.0`（别名 `check-llm-console`） |
+| DNS | slirp DNS → DoH 回退 | log 无 `host gw` |
 
-**继承 0.4.0**：fleet ingest、remote TCP 仍包含在同一验收脚本中。
+**继承 0.4.0**：fleet ingest、remote TCP 仍包含在同一验收脚本中。详见 [V0.5.0.md](./V0.5.0.md)。
 
 ---
 
@@ -120,8 +122,20 @@ flowchart LR
 | 版本 | 时间（基准） | 主题 | 退出标准 |
 |------|-------------|------|----------|
 | **0.6.0** | 2026 Q4 | x86 VirtIO-net PCI 与 RISC-V parity | `check-x86-0.4.0` 绿 |
+| **0.7.0** | 2027 Q1 | Fleet HTTPS ingest + router 多 backend | `check-0.7.0` |
+| **0.8.0** | 2027 Q1–Q2 | RISC-V/x86 统一 Console 产品内核 | 双平台同 semver gate |
 | **0.9.0** | 2027 Q2 | OTA 签名强制 + 渗透测试修复 | 安全审计清单 |
 | **1.0.0 GA** | 2027 Q3 | stable/LTS 渠道、集成商文档、≥1 真板 smoke | 见 [V7_IMPLEMENTATION.md](./V7_IMPLEMENTATION.md) §6.2 |
+
+0.6.0 设计细节：[V0.6.0_PLAN.md](./V0.6.0_PLAN.md) · 完整索引：[RELEASE_ITERATIONS.md](./RELEASE_ITERATIONS.md)
+
+| 版本 | 设计文档 |
+|------|----------|
+| 0.6.0 | [V0.6.0_PLAN.md](./V0.6.0_PLAN.md) |
+| 0.7.0 | [V0.7.0_PLAN.md](./V0.7.0_PLAN.md) |
+| 0.8.0 | [V0.8.0_PLAN.md](./V0.8.0_PLAN.md) |
+| 0.9.0 | [V0.9.0_PLAN.md](./V0.9.0_PLAN.md) |
+| 1.0.0 | [V1.0.0_PLAN.md](./V1.0.0_PLAN.md) |
 
 ### v8 工程线（支撑 v1.0）
 
@@ -133,20 +147,22 @@ flowchart LR
 
 ## 8. 能力矩阵（规划）
 
-| 能力 | 0.1.0 | 0.2.0 | 0.3.0 | 0.4.0 | 0.5.0 | 1.0.0 |
-|------|-----------|---------|---------|---------|---------|------|
-| x86 Console 子 OS | ✅ | ✅ | ✅ | ✅ exp | ✅ exp | ✅ |
-| RISC-V v7 栈 | stub | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Policy 文件 load | 内存 deny | ✅ ramfs | ✅ | ✅ | ✅ | ✅ |
-| Fleet HTTP push | stub | collector | ingest (faux) | ingest (net) | ingest (net) | 生产 TLS |
-| Remote Console | host stub | stub | ping (faux) | TCP connect | TCP connect | token+审计 |
-| Console /llm DeepSeek | faux | faux | faux | faux | ✅ net | ✅ |
-| Mesh 跨设备 | beacon | beacon | host relay | host relay | host relay | 可选 |
-| 真板 | — | — | smoke | smoke | 必选 |
+| 能力 | 0.1.0 | 0.2.0 | 0.3.0 | 0.4.0 | 0.5.0 | 0.6.0 | 0.7.0 | 0.8.0 | 0.9.0 | 1.0.0 |
+|------|-----------|---------|---------|---------|---------|-------|-------|-------|-------|------|
+| x86 Console 子 OS | ✅ | ✅ | ✅ | ✅ exp | ✅ exp | ✅ net | ✅ | ✅ full | ✅ | ✅ |
+| RISC-V v7 栈 | stub | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Policy 文件 load | 内存 deny | ✅ ramfs | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Fleet HTTP push | stub | collector | ingest (faux) | ingest (net) | ingest (net) | ingest (net) | **HTTPS** | HTTPS | HTTPS | 生产 |
+| Remote Console | host stub | stub | ping (faux) | TCP connect | TCP connect | TCP connect | TCP | TCP+audit | hardened | 生产 |
+| Console /llm DeepSeek | faux | faux | faux | faux | ✅ RV 直连 | ✅ RV | ✅ RV | **双平台** | ✅ | ✅ 冻结 |
+| x86 VirtIO-net CI | — | — | — | 手动 | 手动 | **check-x86** | ✅ | ✅ | ✅ | ✅ |
+| OTA 签名 | CRC | CRC | CRC | CRC | CRC | CRC | CRC | CRC | **Ed25519** | 强制 |
+| Mesh 跨设备 | beacon | beacon | host relay | host relay | host relay | host relay | host relay | optional | optional | 可选 |
+| 真板 smoke | — | — | — | — | — | — | — | 可选 | **必选** | ≥2 BSP |
 
 ---
 
-## 8. 验收命令速查
+## 9. 验收命令速查
 
 ```bash
 # 产品 Release gate（SemVer）
@@ -154,7 +170,13 @@ make check-0.1.0          # 别名 check-v0.1-beta
 make check-0.2.0          # 别名 check-v0.2-rc
 make check-0.3.0          # fleet ingest + remote ping
 make check-0.4.0          # 别名 check-remote-console：RISC-V virtio-net + TCP (~13s)
-make check-0.5.0          # 别名 check-llm-console：DeepSeek /llm + 0.4.0 栈 (~20s)
+make check-0.5.0          # 别名 check-llm-console：DeepSeek /llm + 0.4.0 栈 (~75s)
+# 规划中（见 docs/RELEASE_ITERATIONS.md）：
+# make check-x86-0.4.0    # 0.6.0
+# make check-0.7.0        # 0.7.0 HTTPS fleet + router
+# make check-0.8.0        # 0.8.0 双平台
+# make check-0.9.0        # 0.9.0 OTA 签名
+# make check-ga-1.0       # 1.0.0 GA
 
 # v7 分项
 make check-console-v7     # RISC-V v7
@@ -166,7 +188,7 @@ make check-console-x86-all check-platform
 
 ---
 
-## 9. ABI 与破坏性变更
+## 10. ABI 与破坏性变更
 
 - **v0.x**：Tool 22–25 已分配，仅追加不修改语义
 - **v1.0**：syscall + Tool 表冻结声明；breaking 仅 major
@@ -174,7 +196,7 @@ make check-console-x86-all check-platform
 
 ---
 
-## 10. 与个人品牌的关系
+## 11. 与个人品牌的关系
 
 产品路线图由 **OpenAgentOS** 项目承载；个人品牌负责叙事、信任与社区。详见 **[BRAND.md](./BRAND.md)**。
 

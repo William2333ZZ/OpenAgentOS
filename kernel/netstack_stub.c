@@ -16,6 +16,13 @@ int net_dns_resolve(const char *host, uint32_t *out_ip, int timeout_ms) {
     return ENODEV;
 }
 
+int net_dns_resolve_slirp(const char *host, uint32_t *out_ip, int timeout_ms) {
+    (void)host;
+    (void)out_ip;
+    (void)timeout_ms;
+    return ENODEV;
+}
+
 int net_tcp_connect_ip(uint32_t ip, uint16_t port, int timeout_ms) {
     (void)ip;
     (void)port;
@@ -65,9 +72,10 @@ int net_http_post(const char *host, uint16_t port, const char *path, const char 
     return ENODEV;
 }
 
-int net_https_post(const char *host, const char *path, const char *headers, const char *body,
-                   char *resp, int resp_len, int timeout_ms) {
+int net_https_post_port(const char *host, uint16_t port, const char *path, const char *headers,
+                        const char *body, char *resp, int resp_len, int timeout_ms) {
     (void)host;
+    (void)port;
     (void)path;
     (void)headers;
     (void)body;
@@ -77,10 +85,17 @@ int net_https_post(const char *host, const char *path, const char *headers, cons
     return ENODEV;
 }
 
-int net_https_post_ip(const char *host, uint32_t ip, const char *path, const char *headers,
-                      const char *body, char *resp, int resp_len, int timeout_ms) {
+int net_https_post(const char *host, const char *path, const char *headers, const char *body,
+                   char *resp, int resp_len, int timeout_ms) {
+    return net_https_post_port(host, 443, path, headers, body, resp, resp_len, timeout_ms);
+}
+
+int net_https_post_ip(const char *host, uint32_t ip, uint16_t port, const char *path,
+                      const char *headers, const char *body, char *resp, int resp_len,
+                      int timeout_ms) {
     (void)host;
     (void)ip;
+    (void)port;
     (void)path;
     (void)headers;
     (void)body;
